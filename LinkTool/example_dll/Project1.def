@@ -1,0 +1,8 @@
+LIBRARY Project1
+EXPORTS
+   retVal = ?retVal@Module1@@AAGXXZ
+   retVal2 = ?retVal2@Module1@@AAGXXZ
+   ModalForm = ?ModalForm@Module1@@AAGXXZ
+   NonModalForm = ?NonModalForm@Module1@@AAGXXZ
+   DllMain = ?DllMain@Module1@@AAGXXZ
+   __vbaS

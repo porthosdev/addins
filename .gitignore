@@ -1,0 +1,16 @@
+*.htm*
+*.dep
+*.pdb
+*.ncb
+*.manifest
+*.suo
+*.idb
+*/Debug/*
+*.opt
+*.ilk
+*.exp
+*.plg
+*.user
+*.lib
+*.pch
+*.oca

@@ -1,0 +1,7 @@
+# this is a comment
+Export Module1 retVal retVal2 ModalForm NonModalForm
+Entry Module1 DllMain 
+Status 
+Debug
+PostBuild copy %1 c:\test.dll
+

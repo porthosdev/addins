@@ -1,0 +1,4 @@
+WipeFunc Module1 add
+addobj "%apppath\c_module.obj"
+status
+debug

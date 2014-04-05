@@ -1,0 +1,2 @@
+PostBuild copy %1 "%vb\link.exe"
+status

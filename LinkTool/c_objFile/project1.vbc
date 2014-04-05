@@ -1,0 +1,4 @@
+_Export to64 add64 sub64 hex64 init
+AddObj "%apppath\c_obj.obj"
+Status 
+#DEBUG

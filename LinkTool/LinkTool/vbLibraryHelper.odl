@@ -1,0 +1,52 @@
+[ uuid(AABBCCDD-0000-0000-0000-000000000000), 
+	helpstring("MathImagics VB6 DLL Self-initialiser"), 
+	lcid(0x0), version(1.0)
+] 
+
+library vbLibraryHelper { 
+    
+    importlib("stdole2.tlb");
+    importlib("wmp.dll");
+
+   
+	typedef struct { 
+		long Data1; 
+		short Data2; 
+		short Data3; 
+		unsigned char Data4[8];
+	} IID; 
+	
+	[dllname("vbLibraryHelper_mathimagics")] 
+	module ThisDLL { 
+		[entry("DllGetClassObject")] Long DllGetClassObject( [in] long *pClsId, [in] IID *riid, [in] long *ppv); 
+		[entry("__vbaS")] Long vbaS( [in] long hInst, [in] long lReason, [in] long lRsrvd); 
+	} 
+	
+	[ dllname("OLEAUT32.DLL") ]
+	module oleaut32 {
+
+	   [entry("SysAllocString")]
+	    BSTR SysAllocString(
+	        [in] LONG pStr);
+	
+	    [entry("SysAllocStringByteLen")]
+	    BSTR SysAllocStringByteLen(
+	        [in] void *psz,
+	        [in] LONG len);
+	        
+	   [entry("SysFreeString")]
+	    void SysFreeString(
+	        [in] BSTR *bstr);
+	        
+	   [entry("SysReAllocString")]
+	    LONG SysReAllocString(
+	        [in] BSTR *in,
+	        [in] LONG pStr);
+
+
+	}
+
+} 
+
+
+
