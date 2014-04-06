@@ -1,19 +1,57 @@
 Attribute VB_Name = "Module1"
 'this one only works in the IDE, doesnt work from an addin? (running or breakpoint)
 'Private Declare Function EbExecuteLine Lib "vba6.dll" (ByVal pStringToExec As Long, ByVal Unknownn1 As Long, ByVal Unknownn2 As Long, ByVal fCheckOnly As Long) As Long
+'
+'Portions of this source file were taken from: iDBG ActiveX Debugging Library and IDACompare
+'These portions are copyright iDefense and used under GPL license.
 
-Public Declare Function OpenProcess Lib "kernel32" (ByVal dwDesiredAccess As Long, ByVal bInheritHandle As Long, ByVal dwProcessId As Long) As Long
-Public Declare Function ReadProcessMemory Lib "kernel32" (ByVal hProcess As Long, ByVal lpBaseAddress As Any, lpBuffer As Byte, ByVal nSize As Long, lpNumberOfBytesWritten As Long) As Long
-Public Declare Function ReadProcessLongs Lib "kernel32" Alias "ReadProcessMemory" (ByVal hProcess As Long, ByVal lpBaseAddress As Any, lpBuffer As Long, ByVal nSize As Long, lpNumberOfBytesWritten As Long) As Long
-Public Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As Long)
-Public Declare Function CloseHandle Lib "kernel32" (ByVal hObject As Long) As Long
-Public Declare Function GetCurrentProcessId Lib "kernel32" () As Long
+Public Declare Function OpenProcess Lib "Kernel32" (ByVal dwDesiredAccess As Long, ByVal bInheritHandle As Long, ByVal dwProcessId As Long) As Long
+Public Declare Function ReadProcessMemory Lib "Kernel32" (ByVal hProcess As Long, ByVal lpBaseAddress As Any, lpBuffer As Byte, ByVal nSize As Long, lpNumberOfBytesWritten As Long) As Long
+Public Declare Function ReadProcessLongs Lib "Kernel32" Alias "ReadProcessMemory" (ByVal hProcess As Long, ByVal lpBaseAddress As Any, lpBuffer As Long, ByVal nSize As Long, lpNumberOfBytesWritten As Long) As Long
+Public Declare Sub CopyMemory Lib "Kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As Long)
+Public Declare Function CloseHandle Lib "Kernel32" (ByVal hObject As Long) As Long
+Public Declare Function GetCurrentProcessId Lib "Kernel32" () As Long
 Public Declare Sub SetWindowPos Lib "user32" (ByVal hwnd As Long, ByVal hWndInsertAfter As Long, ByVal x As Long, ByVal y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long)
-Public Declare Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
+Public Declare Function LoadLibrary Lib "Kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
 Public Declare Function LockWindowUpdate Lib "user32" (ByVal hwndLock As Long) As Long
 Private Declare Function Disasm Lib "olly.dll" (ByRef src As Byte, ByVal srcsize As Long, ByVal ip As Long, Disasm As t_Disasm, Optional disasmMode As Long = 4) As Long
 Public Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
+Private Declare Function LookupPrivilegeValue Lib "advapi32.dll" Alias "LookupPrivilegeValueA" (ByVal lpSystemName As String, ByVal lpName As String, lpLuid As LUID) As Long
+Private Declare Function GetLastError Lib "kernel32.dll" () As Long
+Private Declare Function AdjustTokenPrivileges Lib "advapi32.dll" (ByVal TokenHandle As Long, ByVal DisableAllPrivileges As Long, ByRef NewState As TOKEN_PRIVILEGES, ByVal BufferLength As Long, ByRef PreviousState As TOKEN_PRIVILEGES, ByRef ReturnLength As Long) As Long
+Private Declare Function OpenProcessToken Lib "advapi32.dll" (ByVal ProcessHandle As Long, ByVal DesiredAccess As Long, TokenHandle As Long) As Long
+Private Declare Function GetTokenInformation Lib "advapi32.dll" (ByVal TokenHandle As Long, ByVal TokenInformationClass As Integer, TokenInformation As Any, ByVal TokenInformationLength As Long, ReturnLength As Long) As Long
+Private Declare Function LookupAccountSid Lib "advapi32.dll" Alias "LookupAccountSidA" (ByVal lpSystemName As String, ByVal sID As Long, ByVal name As String, cbName As Long, ByVal ReferencedDomainName As String, cbReferencedDomainName As Long, peUse As Integer) As Long
+Private Declare Function GetCurrentProcess Lib "Kernel32" () As Long
 
+Private Type LUID
+    LowPart As Long
+    HighPart As Long
+End Type
+
+Private Type TOKEN_PRIVILEGES
+    PrivilegeCount As Long
+    TheLuid As LUID
+    Attributes As Long
+End Type
+
+Private Type WTS_PROCESS_INFO
+   sessionID As Long
+   ProcessID As Long
+   pProcessName As Long
+   pUserSid As Long
+End Type
+
+Private Declare Function WTSEnumerateProcesses _
+   Lib "wtsapi32.dll" Alias "WTSEnumerateProcessesA" _
+   (ByVal hServer As Long, ByVal Reserved As Long, _
+   ByVal Version As Long, ByRef ppProcessInfo As Long, _
+   ByRef pCount As Long _
+   ) As Long
+
+Private Declare Sub WTSFreeMemory Lib "wtsapi32.dll" _
+   (ByVal pMemory As Long)
+   
 Private Type t_Disasm
   ip As Long
   dump As String * 256
@@ -36,10 +74,106 @@ End Type
 Global hProcess As Long
 Global Const PROCESS_VM_READ = (&H10)
 Global Const LANG_US = &H409
+Global SeDebugEnabled As Boolean
 
 'Public Function ExecuteLine(sCode As String) As Boolean
 '   ExecuteLine = EbExecuteLine(StrPtr(sCode), 0, 0, 0) = 0
 'End Function
+
+Function GetSeDebug() As Boolean
+    Dim hToken As Long, hProcess As Long, lRet As Long
+    Dim tkp As TOKEN_PRIVILEGES
+    
+    Const TOKEN_ADJUST_PRIVILEGES As Long = &H20
+    Const TOKEN_QUERY As Long = &H8
+
+    hProcess = GetCurrentProcess()
+    OpenProcessToken hProcess, TOKEN_ADJUST_PRIVILEGES Or TOKEN_QUERY, hToken
+    LookupPrivilegeValue "", "SeDebugPrivilege", tkp.TheLuid
+
+    tkp.PrivilegeCount = 1
+    tkp.Attributes = 2 'SE_PRIVILEGE_ENABLED
+    
+    If AdjustTokenPrivileges(hToken, False, tkp, Len(tkp), tkp, lRet) = 0 Then Exit Function
+        
+    If GetLastError = 0 Then GetSeDebug = True
+
+End Function
+
+Private Function GetUserName(sID As Long, p As CProcess) As String
+    On Error Resume Next
+    Dim retname As String
+    Dim retdomain As String
+    retname = String(255, 0)
+    retdomain = String(255, 0)
+    LookupAccountSid vbNullString, sID, retname, 255, retdomain, 255, 0
+    p.domain = Left$(retdomain, InStr(retdomain, vbNullChar) - 1)
+    p.User = Left$(retname, InStr(retname, vbNullChar) - 1)
+    GetUserName = p.domain & "\" & p.User
+End Function
+
+Function GetRunningProcesses() As Collection 'of CProcess classes
+    
+    Dim m_col As New Collection
+    Dim proc As CProcess
+    Dim RetVal As Long
+    Dim i As Integer
+    Dim lpBuffer As Long
+    Dim p As Long
+    Dim udtProcessInfo As WTS_PROCESS_INFO
+
+    RetVal = WTSEnumerateProcesses(WTS_CURRENT_SERVER_HANDLE, 0&, 1, lpBuffer, Count)
+   
+    If RetVal Then
+          p = lpBuffer
+          For i = 1 To Count
+                CopyMemory udtProcessInfo, ByVal p, LenB(udtProcessInfo)
+                Set proc = New CProcess
+                With proc
+                    .sessionID = udtProcessInfo.sessionID
+                    .pid = udtProcessInfo.ProcessID
+                    .path = GetStringFromLP(udtProcessInfo.pProcessName)
+                    '.fullpath = GetProcessPath(.pid)
+                    '.ParentPID = GetParentProcessId(.pid)
+                    '.cmdLine = GetProcessCmdLine(.pid, .fullpath)
+                    GetUserName udtProcessInfo.pUserSid, proc
+                    '.is64Bit = (x64.IsProcess_x64(.pid) = r_64bit)
+                    m_col.Add proc, "pid:" & .pid
+                End With
+                         
+                p = p + LenB(udtProcessInfo)
+          Next i
+    
+          WTSFreeMemory lpBuffer   'Free your memory buffer
+   'Else
+   '     Set m_col = Legacy_GetRunningProcesses() 'win2k
+   End If
+   
+   Set GetRunningProcesses = m_col
+    
+End Function
+
+Private Function GetStringFromLP(ByVal StrPtr As Long) As String
+   Dim b As Byte
+   Dim tempStr As String
+   Dim bufferStr As String
+   Dim Done As Boolean
+
+   Done = False
+   Do
+      ' Get the byte/character that StrPtr is pointing to.
+      CopyMemory b, ByVal StrPtr, 1
+      If b = 0 Then  ' If you've found a null character, then you're done.
+         Done = True
+      Else
+         tempStr = Chr$(b)  ' Get the character for the byte's value
+         bufferStr = bufferStr & tempStr 'Add it to the string
+                
+         StrPtr = StrPtr + 1  ' Increment the pointer to next byte/char
+      End If
+   Loop Until Done
+   GetStringFromLP = bufferStr
+End Function
 
 Function isHexNum(s As String) As Long
     On Error Resume Next
@@ -227,10 +361,10 @@ Sub FormPos(fform As Object, Optional andSize As Boolean = True, Optional save_m
     For i = 1 To sz
         If save_mode Then
             ff = CallByName(fform, f(i), VbGet)
-            SaveSetting "MyAddin", fform.Name & ".FormPos", f(i), ff
+            SaveSetting "MyAddin", fform.name & ".FormPos", f(i), ff
         Else
             def = CallByName(fform, f(i), VbGet)
-            ff = GetSetting("MyAddin", fform.Name & ".FormPos", f(i), def)
+            ff = GetSetting("MyAddin", fform.name & ".FormPos", f(i), def)
             CallByName fform, f(i), VbLet, ff
         End If
     Next
@@ -290,17 +424,17 @@ Function tHex(x As Long) As String
     tHex = Right("00000000" & Hex(x), 8)
 End Function
 
-Function ReadMemBuf(start As Long, count As Long, out() As Byte) As Boolean
+Function ReadMemBuf(start As Long, Count As Long, out() As Byte) As Boolean
     Dim ret As Long
-    ReDim out(count - 1)
-    ret = ReadProcessMemory(hProcess, start, out(0), count, count)
+    ReDim out(Count - 1)
+    ret = ReadProcessMemory(hProcess, start, out(0), Count, Count)
     ReadMemBuf = IIf(ret <> 0, True, False)
 End Function
 
-Function ReadMemLongs(start As Long, count As Long, out() As Long) As Boolean
+Function ReadMemLongs(start As Long, Count As Long, out() As Long) As Boolean
     Dim ret As Long
-    ReDim out(count - 1)
-    ret = ReadProcessLongs(hProcess, start, out(0), count * 4, count)
+    ReDim out(Count - 1)
+    ret = ReadProcessLongs(hProcess, start, out(0), Count * 4, Count)
     ReadMemLongs = IIf(ret <> 0, True, False)
 End Function
 
@@ -444,7 +578,7 @@ Sub killNonPrintable(b() As Byte, Optional nullToo As Boolean = False)
 End Sub
 
 'note: this implementation was designed for % 16 data inputs..
-Function hexdump(ByVal base As Long, it() As Byte) As String
+Function hexdump(ByVal Base As Long, it() As Byte) As String
     Dim my, i, c, s, a As Byte, b
     Dim lines() As String
     
@@ -456,8 +590,8 @@ Function hexdump(ByVal base As Long, it() As Byte) As String
         b = b & IIf((a > 32 And a < 127), Chr(a), ".")
         my = my & c & " "
         If (i + 1) Mod 16 = 0 Then
-            push lines(), Hex(base) & " " & my & " [" & b & "]"
-            base = base + 16
+            push lines(), Hex(Base) & " " & my & " [" & b & "]"
+            Base = Base + 16
             my = Empty
             b = Empty
         End If
@@ -474,7 +608,7 @@ Function hexdump(ByVal base As Long, it() As Byte) As String
     End If
         
     If UBound(it) < 16 Then
-        hexdump = Hex(base) & " " & my & " [" & b & "]" & vbCrLf
+        hexdump = Hex(Base) & " " & my & " [" & b & "]" & vbCrLf
     Else
         hexdump = Join(lines, vbCrLf)
     End If

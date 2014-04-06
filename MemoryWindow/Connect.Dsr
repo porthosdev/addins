@@ -148,7 +148,7 @@ Private Function Addit() As Office.CommandBarControl
     orgData = Clipboard.GetText
     
     VBInstance.CommandBars(2).Visible = True
-    Set cbMenu = VBInstance.CommandBars(2).Controls.Add(1, , , VBInstance.CommandBars(2).Controls.count)
+    Set cbMenu = VBInstance.CommandBars(2).Controls.Add(1, , , VBInstance.CommandBars(2).Controls.Count)
     cbMenu.Caption = "Memory"
     Clipboard.SetData LoadResPicture(101, 0)
     cbMenu.PasteFace

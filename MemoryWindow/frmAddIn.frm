@@ -85,6 +85,7 @@ Begin VB.Form frmAddIn
       _ExtentX        =   17092
       _ExtentY        =   7170
       _Version        =   393217
+      Enabled         =   -1  'True
       ScrollBars      =   3
       TextRTF         =   $"frmAddIn.frx":0000
       BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
@@ -114,6 +115,9 @@ Begin VB.Form frmAddIn
       Begin VB.Menu mnuNewWindow 
          Caption         =   "New Window"
       End
+      Begin VB.Menu mnuExternalProcess 
+         Caption         =   "External Process"
+      End
    End
 End
 Attribute VB_Name = "frmAddIn"
@@ -136,18 +140,15 @@ Attribute VB_Exposed = False
 '   always on top
 '   hit escape and it takes you back through the displayed address history
 '   in long, long address, and disasm mode, if you ctrl + mouse over a valid address it will hyperlink it (like lazarus)
-'
+'   ability to view memory in other processes
 '
 ' todo:
 '       savemem command (binary)
-'       allow user to select external process..
 
 #If IS_ADDIN Then
     Public VBInstance As VBIDE.VBE
     Public Connect As Connect
 #End If
-
-
 
 Public lastVA As Long
 Public nextVa As Long
@@ -155,7 +156,6 @@ Public lastText As String
 
 Dim history As New Collection
 Dim curView As CView
-
 
 Const szHexDump = &H200
 Const szDwordDump = 25
@@ -301,6 +301,22 @@ Private Function GetHistory() As CView
 End Function
 
 
+
+Private Sub mnuExternalProcess_Click()
+    Dim p As CProcess
+    Dim c As Collection
+    Set c = GetRunningProcesses()
+    Set p = frmListProcess.SelectProcess(c)
+    If Not p Is Nothing Then
+        If hProcess <> 0 Then CloseHandle hProcess
+        hProcess = OpenProcess(PROCESS_VM_READ, False, p.pid)
+        If hProcess <> 0 Then
+            Me.Caption = "Viewing memory for: " & p.path
+            Set history = New Collection
+            Command1_Click
+        End If
+    End If
+End Sub
 
 Private Sub mnuNewWindow_Click()
     On Error Resume Next
@@ -547,20 +563,20 @@ Private Sub Text2_MouseMove(Button As Integer, Shift As Integer, x As Single, y 
    End If
    
    If Not hilight Is Nothing Then
-        If hilight.SelStart = startPos Then Exit Sub
+        If hilight.selStart = startPos Then Exit Sub
         hilight.Undo Text2
         Set hilight = Nothing
    End If
    
    working = True
-   LockWindowUpdate Text2.hWnd
+   LockWindowUpdate Text2.hwnd
 
    'save current selection offsets
    'topLine = TopLineIndex(Text2)  'currently a bug in this..but we usually have small display size so probably no scrolling anyway fuck it..
-   ss = Text2.SelStart
+   ss = Text2.selStart
    
-   Text2.SelStart = startPos
-   Text2.SelLength = Len(curWord)
+   Text2.selStart = startPos
+   Text2.selLength = Len(curWord)
    'Me.Caption = curWord
 
    Set hilight = New CSelection
@@ -570,7 +586,7 @@ Private Sub Text2_MouseMove(Button As Integer, Shift As Integer, x As Single, y 
    Text2.SelUnderline = True
    Screen.MousePointer = vbArrow
    
-   Text2.SelStart = ss
+   Text2.selStart = ss
    'ScrollToLine Text2, CInt(topLine)
    LockWindowUpdate 0
    working = False

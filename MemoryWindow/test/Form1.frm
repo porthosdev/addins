@@ -56,10 +56,14 @@ Private Sub Form_Load()
             "objptr(form1) = 0x" & Hex(ObjPtr(Form1)) & vbCrLf & vbCrLf & _
             "look at objptr(form1) in long address mode. " & _
             "Press ctrl and mouse over some of the addresses. They will turn to hyper links if valid " & _
-            "Browse around and see if you can locate IUnknown Interface and its x86 code, view it in Disasm Mode" & _
+            "Browse around and see if you can locate any function pointer tables and its x86 code, view it in Disasm Mode" & _
             vbCrLf & vbCrLf & _
             "Once you have jumped around a bit. Hit the escape key to navigate backwards in your history. " & _
             "Previous addresses and the last view state you used for it are saved."
+            
+    Text1 = Text1 & vbCrLf & vbCrLf & _
+            "If you see an error in the Memory Viewer window that olly.dll is missing, you can download the source " & _
+            "and a compiled version here: http://sandsprite.com/CodeStuff/olly_dll.html"
             
     
             
