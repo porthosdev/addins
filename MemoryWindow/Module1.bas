@@ -1,6 +1,7 @@
 Attribute VB_Name = "Module1"
 'this one only works in the IDE, doesnt work from an addin? (running or breakpoint)
-'Private Declare Function EbExecuteLine Lib "vba6.dll" (ByVal pStringToExec As Long, ByVal Unknownn1 As Long, ByVal Unknownn2 As Long, ByVal fCheckOnly As Long) As Long
+Private Declare Function EbExecuteLine Lib "vba6.dll" (ByVal pStringToExec As Long, ByVal Unknownn1 As Long, ByVal Unknownn2 As Long, ByVal fCheckOnly As Long) As Long
+
 '
 'Portions of this source file were taken from: iDBG ActiveX Debugging Library and IDACompare
 'These portions are copyright iDefense and used under GPL license.
@@ -76,9 +77,9 @@ Global Const PROCESS_VM_READ = (&H10)
 Global Const LANG_US = &H409
 Global SeDebugEnabled As Boolean
 
-'Public Function ExecuteLine(sCode As String) As Boolean
-'   ExecuteLine = EbExecuteLine(StrPtr(sCode), 0, 0, 0) = 0
-'End Function
+Public Function ExecuteLine(sCode As String) As Boolean
+   ExecuteLine = EbExecuteLine(StrPtr(sCode), 0, 0, 0) = 0
+End Function
 
 Function GetSeDebug() As Boolean
     Dim hToken As Long, hProcess As Long, lRet As Long

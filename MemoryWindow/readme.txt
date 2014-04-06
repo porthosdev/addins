@@ -14,6 +14,8 @@
 '   hit escape and it takes you back through the displayed address history
 '   in long, long address, and disasm mode, if you ctrl + mouse over a valid address it will hyperlink it (like lazarus)
 '   ability to view memory in other processes
+'   ability to use expressions such as ?objptr(form1) or ?&h401000 + &h10 (VB Addin version only)
+'   standalone version availabe in /debug folder
 
 Credits:
 

@@ -1,13 +1,13 @@
 VERSION 5.00
 Begin VB.Form Form1 
    Caption         =   "Form1"
-   ClientHeight    =   4995
+   ClientHeight    =   5985
    ClientLeft      =   60
    ClientTop       =   345
    ClientWidth     =   9240
    KeyPreview      =   -1  'True
    LinkTopic       =   "Form1"
-   ScaleHeight     =   4995
+   ScaleHeight     =   5985
    ScaleWidth      =   9240
    StartUpPosition =   2  'CenterScreen
    Begin VB.TextBox Text1 
@@ -20,13 +20,13 @@ Begin VB.Form Form1
          Italic          =   0   'False
          Strikethrough   =   0   'False
       EndProperty
-      Height          =   3750
-      Left            =   225
+      Height          =   5460
+      Left            =   90
       MultiLine       =   -1  'True
       TabIndex        =   0
       Text            =   "Form1.frx":0000
-      Top             =   180
-      Width           =   8160
+      Top             =   135
+      Width           =   9150
    End
 End
 Attribute VB_Name = "Form1"
@@ -59,13 +59,18 @@ Private Sub Form_Load()
             "Browse around and see if you can locate any function pointer tables and its x86 code, view it in Disasm Mode" & _
             vbCrLf & vbCrLf & _
             "Once you have jumped around a bit. Hit the escape key to navigate backwards in your history. " & _
-            "Previous addresses and the last view state you used for it are saved."
+            "Previous addresses and the last view state you used for it are saved." & _
+            vbCrLf & vbCrLf
             
-    Text1 = Text1 & vbCrLf & vbCrLf & _
+    Text1 = Text1 & _
             "If you see an error in the Memory Viewer window that olly.dll is missing, you can download the source " & _
-            "and a compiled version here: http://sandsprite.com/CodeStuff/olly_dll.html"
+            "and a compiled version here: http://sandsprite.com/CodeStuff/olly_dll.html" & _
+            vbCrLf & vbCrLf
             
-    
+    Text1 = Text1 & _
+            "If running the vb addin version, you can also use expressions such as ?objptr(form1) or ?&h401000 + &h10" & _
+            "This feature uses the undocumented VBA6.dll export EbExecuteLine."
+            
             
             
     

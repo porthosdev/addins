@@ -85,7 +85,6 @@ Begin VB.Form frmAddIn
       _ExtentX        =   17092
       _ExtentY        =   7170
       _Version        =   393217
-      Enabled         =   -1  'True
       ScrollBars      =   3
       TextRTF         =   $"frmAddIn.frx":0000
       BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
@@ -349,17 +348,23 @@ Private Sub Command1_Click()
     lastText = Text1
     tmp = Replace(Text1, "0x", "&h", , , vbTextCompare)
     
-    'If Left(Text1, 1) = "?" Then     'as awesome as this would have been..doesnt work from an addin :_(
-    '    exp = Mid(tmp, 2)
-    '    ExecuteLine "Form1.Value=" & exp
-    '    va = CLng(Value)
-    'Else
+    #If IS_ADDIN Then
+        If Left(Text1, 1) = "?" Then  'figured out how to get it to work from addin :)
+            exp = Mid(tmp, 2)
+            ExecuteLine "var=" & exp & ":savesetting ""vb6"",""IDE"",""eval"",var"
+            value = GetSetting("vb6", "ide", "eval", 0)
+            SaveSetting "vb6", "IDE", "eval", 0
+            va = CLng(value)
+        End If
+    #End If
+    
+    If va = 0 Then
         va = CLng(tmp)
         If va = 0 Then
             Err.Clear
             va = CLng("&h" & tmp) 'maybe it was a hex address with no prefix..
         End If
-    'End If
+    End If
     
     If va = 0 Or Err.Number <> 0 Then
         If Len(exp) > 0 Then
