@@ -52,7 +52,16 @@ Private Sub Form_Load()
     
     Text1 = "strptr(a) = 0x" & Hex(StrPtr(a)) & vbCrLf & _
             "varptr(b(0)) = 0x" & Hex(VarPtr(b(0))) & vbCrLf & _
-            "varptr(l(0)) = 0x" & Hex(VarPtr(l(0))) & vbCrLf
+            "varptr(l(0)) = 0x" & Hex(VarPtr(l(0))) & vbCrLf & _
+            "objptr(form1) = 0x" & Hex(ObjPtr(Form1)) & vbCrLf & vbCrLf & _
+            "look at objptr(form1) in long address mode. " & _
+            "Press ctrl and mouse over some of the addresses. They will turn to hyper links if valid " & _
+            "Browse around and see if you can locate IUnknown Interface and its x86 code, view it in Disasm Mode" & _
+            vbCrLf & vbCrLf & _
+            "Once you have jumped around a bit. Hit the escape key to navigate backwards in your history. " & _
+            "Previous addresses and the last view state you used for it are saved."
+            
+    
             
             
     
