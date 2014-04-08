@@ -1,0 +1,9 @@
+Loader = 0, 0, 0, 0, C, 198, 198, 974, 691, C
+ISubclass = 88, 88, 1017, 623, 
+cSubclass = 66, 66, 995, 601, C
+TabStrip = 176, 176, 1105, 711, 
+TabItem = 154, 154, 1083, 689, C
+mPublic = 22, 22, 951, 557, C
+MDIChildWindow = 110, 110, 1039, 645, 
+MDIMonitor = 132, 132, 1061, 667, 
+cRegistry = 44, 44, 973, 579, 
