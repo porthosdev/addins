@@ -351,9 +351,9 @@ Private Sub Command1_Click()
     #If IS_ADDIN Then
         If Left(Text1, 1) = "?" Then  'figured out how to get it to work from addin :)
             exp = Mid(tmp, 2)
+            SaveSetting "vb6", "IDE", "eval", 0
             ExecuteLine "var=" & exp & ":savesetting ""vb6"",""IDE"",""eval"",var"
             value = GetSetting("vb6", "ide", "eval", 0)
-            SaveSetting "vb6", "IDE", "eval", 0
             va = CLng(value)
         End If
     #End If
@@ -361,12 +361,11 @@ Private Sub Command1_Click()
     If va = 0 Then
         va = CLng(tmp)
         If va = 0 Then
-            Err.Clear
             va = CLng("&h" & tmp) 'maybe it was a hex address with no prefix..
         End If
     End If
     
-    If va = 0 Or Err.Number <> 0 Then
+    If va = 0 Then
         If Len(exp) > 0 Then
             Text2.Text = "Could not evaluate expression: " & exp & vbCrLf & "return was: " & value
         Else
@@ -477,6 +476,8 @@ Private Sub Form_Load()
         
     Dim h As Long
     h = LoadLibrary("olly.dll")
+    If h = 0 Then h = LoadLibrary(App.path & "\olly.dll")
+    If h = 0 Then h = LoadLibrary(App.path & "\..\olly.dll")
     
     DontReact = True
     cboType.AddItem "Hexdump"

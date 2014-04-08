@@ -457,7 +457,7 @@ Function DisasmBlock(ByVal va As Long, Optional instCount As Long = 20) As Strin
         x = DisasmVA(tmpVa, n)
         If InStr(x, "??") > 0 Then Exit Do
 
-        push tmp, Hex(tmpVa) & vbTab & x
+        push tmp, Hex(tmpVa) & vbTab & LCase(x)
         instAfterVa = instAfterVa + 1
 
         If n = 0 Or instAfterVa = instCount Then 'bad disasm or max reached..
