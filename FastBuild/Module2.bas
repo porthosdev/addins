@@ -3,18 +3,6 @@ Global LastCommandOutput As String
 Public VBInstance As VBIDE.VBE
 Public Connect As Connect
 
-Dim wsh As New WshShell
-
-Function RunCommand(cmd As String) As String
-    On Error Resume Next
-    Dim ts As TextStream
-    Dim ret As String
-    
-    Set ts = wsh.Exec("cmd /c " & cmd).StdOut
-    RunCommand = ts.ReadAll
-    
-End Function
-
 Function ExpandVars(ByVal cmd As String, exeFullPath As String) As String
     Dim appDir As String
     Dim fName As String

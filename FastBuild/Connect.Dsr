@@ -29,15 +29,27 @@ Option Explicit
 
 Public FormDisplayed          As Boolean
 Public VBInstance             As VBIDE.VBE
-Dim mcbMenuCommandBar         As Office.CommandBarControl
-Dim mcbMenuCommandBar2         As Office.CommandBarControl
 Dim mfrmAddIn                 As New frmAddIn
-Public WithEvents MenuHandler As CommandBarEvents          'command bar event handler
-Attribute MenuHandler.VB_VarHelpID = -1
-Public WithEvents MenuHandler2 As CommandBarEvents          'command bar event handler
-Attribute MenuHandler2.VB_VarHelpID = -1
+
+Dim mcbFastBuildUI               As Office.CommandBarControl
+Public WithEvents mnuFastBuildUI As CommandBarEvents
+Attribute mnuFastBuildUI.VB_VarHelpID = -1
+
+Dim mcbFastBuild         As Office.CommandBarControl
+Public WithEvents mnuFastBuild As CommandBarEvents
+Attribute mnuFastBuild.VB_VarHelpID = -1
+
 Public WithEvents FileEvents As VBIDE.FileControlEvents
 Attribute FileEvents.VB_VarHelpID = -1
+
+Dim mcbExecute               As Office.CommandBarControl
+Public WithEvents mnuExecute As CommandBarEvents
+Attribute mnuExecute.VB_VarHelpID = -1
+
+Dim mcbAddref               As Office.CommandBarControl
+Public WithEvents mnuAddref As CommandBarEvents
+Attribute mnuAddref.VB_VarHelpID = -1
+
 
 Sub Hide()
     
@@ -58,15 +70,6 @@ Sub Show()
     Else
         needsRefresh = True
     End If
-    
-    '?VBInstance.ActiveVBProject.BuildFileName
-    'C:\Documents and Settings\david\Desktop\test\Project1.exe
-    
-    '?VBInstance.ActiveVBProject.FileName
-    'C:\Documents and Settings\david\Desktop\test\Project1.vbp
-    
-    '?VBInstance.ActiveVBProject.ReadProperty("tacobell","blah")
-    'if key doesnt exist it will throw error..saved to vbp file..
     
     If Not VBInstance.ActiveVBProject Is Nothing Then
         Debug.Print "OnConnect Project: " & VBInstance.ActiveVBProject.FileName
@@ -98,11 +101,18 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
         'Used by the wizard toolbar to start this wizard
         Me.Show
     Else
-        Set mcbMenuCommandBar = AddToAddInCommandBar("Fast Build")
-        Set mcbMenuCommandBar2 = Addit()
-        'sink the event
-        Set Me.MenuHandler = VBInstance.Events.CommandBarEvents(mcbMenuCommandBar)
-        Set Me.MenuHandler2 = VBInstance.Events.CommandBarEvents(mcbMenuCommandBar2)
+        Set mcbFastBuildUI = AddButton("Fast Build", 101) 'AddToAddInCommandBar("Fast Build")
+        Set Me.mnuFastBuildUI = VBInstance.Events.CommandBarEvents(mcbFastBuildUI)
+        
+        Set mcbFastBuild = AddButton("Compile", 103)
+        Set Me.mnuFastBuild = VBInstance.Events.CommandBarEvents(mcbFastBuild)
+        
+        Set mcbExecute = AddButton("Execute", 102)
+        Set Me.mnuExecute = VBInstance.Events.CommandBarEvents(mcbExecute)
+ 
+        Set mcbAddref = AddrefMenu("Quick AddRef")
+        Set Me.mnuAddref = VBInstance.Events.CommandBarEvents(mcbAddref)
+        
         Set Me.FileEvents = Application.Events.FileControlEvents(Nothing)
         
         Set Module2.VBInstance = VBInstance
@@ -130,9 +140,12 @@ End Sub
 Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjects.ext_DisconnectMode, custom() As Variant)
     On Error Resume Next
     
-    'delete the command bar entry
-    mcbMenuCommandBar.Delete
-    mcbMenuCommandBar2.Delete
+    mcbFastBuildUI.Delete
+    mcbFastBuild.Delete
+    mcbExecute.Delete
+    mcbAddref.Delete
+    
+    Unload frmAddRefs
     Unload mfrmAddIn
     Set mfrmAddIn = Nothing
 
@@ -142,11 +155,7 @@ Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjec
     
 End Sub
 
-Private Sub IDTExtensibility_OnStartupComplete(custom() As Variant)
-End Sub
-
-
-Private Sub FileEvents_AfterWriteFile(ByVal VBProject As VBIDE.VBProject, ByVal FileType As VBIDE.vbext_FileType, ByVal FileName As String, ByVal Result As Integer)
+Private Sub FileEvents_AfterWriteFile(ByVal VBProject As VBIDE.VBProject, ByVal FileType As VBIDE.vbext_FileType, ByVal FileName As String, ByVal result As Integer)
         
     If FileType <> vbext_ft_Exe Then Exit Sub
        
@@ -159,7 +168,7 @@ Private Sub FileEvents_AfterWriteFile(ByVal VBProject As VBIDE.VBProject, ByVal 
     
     If Len(postbuild) > 0 Then
         postbuild = ExpandVars(postbuild, FileName)
-        LastCommandOutput = RunCommand(postbuild)
+        LastCommandOutput = GetCommandOutput("cmd /c " & postbuild, True, True)
     End If
     
     
@@ -168,8 +177,7 @@ End Sub
 Private Sub FileEvents_DoGetNewFileName(ByVal VBProject As VBIDE.VBProject, ByVal FileType As VBIDE.vbext_FileType, NewName As String, ByVal OldName As String, CancelDefault As Boolean)
     Dim fastBuildPath As String
     
-    If FileType <> vbext_ft_Exe Then Exit Sub  'not interested...
-    
+    If FileType <> vbext_ft_Exe Then Exit Sub
     If Not isBuildPathSet() Then Exit Sub
      
     fastBuildPath = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "fullPath")
@@ -180,42 +188,58 @@ Private Sub FileEvents_DoGetNewFileName(ByVal VBProject As VBIDE.VBProject, ByVa
  
 End Sub
 
-Private Sub MenuHandler_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+Private Sub mnuAddref_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    frmAddRefs.Show
+End Sub
+
+Private Sub mnuFastBuildUI_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
     Me.Show
 End Sub
 
-Private Sub MenuHandler2_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
-    Me.Show
+Private Sub mnuFastBuild_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    On Error Resume Next
+    VBInstance.ActiveVBProject.MakeCompiledFile
+End Sub
+
+Private Sub mnuExecute_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    On Error Resume Next
+    Dim fastBuildPath As String
+     
+    If Not isBuildPathSet() Then
+        MsgBox "Can not launch the executable, path not yet set", vbInformation
+        Exit Sub
+    End If
+    
+    fastBuildPath = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "fullPath")
+    
+    If Not FileExists(fastBuildPath) Then
+        MsgBox "File not found: " & fastBuildPath, vbInformation
+        Exit Sub
+    End If
+    
+    Shell fastBuildPath, vbNormalFocus
+    
 End Sub
 
 
 Function AddToAddInCommandBar(sCaption As String) As Office.CommandBarControl
-    Dim cbMenuCommandBar As Office.CommandBarControl  'command bar object
+    Dim cbMenuCommandBar As Office.CommandBarControl
     Dim cbMenu As Object
 
-    On Error GoTo AddToAddInCommandBarErr
+    On Error GoTo hell
 
-    'see if we can find the Add-Ins menu
     Set cbMenu = VBInstance.CommandBars("Add-Ins")
-    If cbMenu Is Nothing Then
-        'not available so we fail
-        Exit Function
-    End If
+    If cbMenu Is Nothing Then Exit Function
 
-    'add it to the command bar
     Set cbMenuCommandBar = cbMenu.Controls.Add(1)
-    'set the caption
-    cbMenuCommandBar.Caption = sCaption
-
+    cbMenuCommandBar.caption = sCaption
     Set AddToAddInCommandBar = cbMenuCommandBar
 
     Exit Function
-
-AddToAddInCommandBarErr:
-
+hell:
 End Function
 
-Private Function Addit() As Office.CommandBarControl
+Private Function AddButton(caption As String, resImg As Long) As Office.CommandBarControl
     Dim cbMenu As Object
     Dim orgData As String
     
@@ -223,12 +247,37 @@ Private Function Addit() As Office.CommandBarControl
     
     VBInstance.CommandBars(2).Visible = True
     Set cbMenu = VBInstance.CommandBars(2).Controls.Add(1, , , VBInstance.CommandBars(2).Controls.Count)
-    cbMenu.Caption = "Fast Build"
-    Clipboard.SetData LoadResPicture(101, 0)
+    cbMenu.caption = caption
+    Clipboard.SetData LoadResPicture(resImg, 0)
     cbMenu.PasteFace
-    Set Addit = cbMenu
+    Set AddButton = cbMenu
     
     Clipboard.Clear
     Clipboard.SetText orgData
+End Function
+
+Private Function AddrefMenu(caption As String) As Office.CommandBarControl
+
+    Dim cbProjMenu As Office.CommandBarControl
+    Dim cbSubMenu As Office.CommandBarControl
+    Dim i As Long
+    
+    On Error GoTo hell
+
+    Set cbProjMenu = VBInstance.CommandBars(1).Controls("Project")   'menu bar is always first command bar
+    
+    If cbProjMenu Is Nothing Then Exit Function
+
+    For Each cbSubMenu In cbProjMenu.Controls
+        i = i + 1
+        If cbSubMenu.caption = "Refere&nces..." Then Exit For
+    Next
+    If i = cbProjMenu.Controls.Count Then Exit Function
+
+    Set AddrefMenu = cbProjMenu.Controls.Add(, , , i + 1) 'add the menu before the References ... menu
+    AddrefMenu.caption = caption
+
+hell:
+
 End Function
 

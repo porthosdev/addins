@@ -2,29 +2,21 @@ VERSION 5.00
 Begin VB.Form frmAddIn 
    BorderStyle     =   1  'Fixed Single
    Caption         =   "Fast Build Addin             http://sandsprite.com"
-   ClientHeight    =   4275
+   ClientHeight    =   4605
    ClientLeft      =   150
    ClientTop       =   435
-   ClientWidth     =   10035
+   ClientWidth     =   10050
    KeyPreview      =   -1  'True
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   4275
-   ScaleWidth      =   10035
+   ScaleHeight     =   4605
+   ScaleWidth      =   10050
    StartUpPosition =   2  'CenterScreen
-   Begin VB.CommandButton cmdHelp 
-      Caption         =   "Help"
-      Height          =   285
-      Left            =   2385
-      TabIndex        =   14
-      Top             =   990
-      Width           =   1140
-   End
    Begin VB.CommandButton Command2 
       Caption         =   "Last CMD Output"
       Height          =   285
-      Left            =   4950
+      Left            =   7110
       TabIndex        =   13
       Top             =   990
       Width           =   1590
@@ -32,7 +24,7 @@ Begin VB.Form frmAddIn
    Begin VB.CommandButton cmdTest 
       Caption         =   "Test"
       Height          =   285
-      Left            =   7515
+      Left            =   8865
       TabIndex        =   12
       Top             =   990
       Width           =   1095
@@ -49,7 +41,7 @@ Begin VB.Form frmAddIn
          Strikethrough   =   0   'False
       EndProperty
       Height          =   285
-      Left            =   8775
+      Left            =   8865
       TabIndex        =   11
       Top             =   630
       Width           =   1095
@@ -69,7 +61,7 @@ Begin VB.Form frmAddIn
       OLEDropMode     =   1  'Manual
       TabIndex        =   10
       Top             =   630
-      Width           =   6225
+      Width           =   6360
    End
    Begin VB.TextBox txtAbout 
       BeginProperty Font 
@@ -81,7 +73,7 @@ Begin VB.Form frmAddIn
          Italic          =   0   'False
          Strikethrough   =   0   'False
       EndProperty
-      Height          =   2715
+      Height          =   3165
       Left            =   90
       MultiLine       =   -1  'True
       ScrollBars      =   2  'Vertical
@@ -133,7 +125,7 @@ Begin VB.Form frmAddIn
          Strikethrough   =   0   'False
       EndProperty
       Height          =   285
-      Left            =   8775
+      Left            =   8865
       TabIndex        =   3
       Top             =   180
       Width           =   1095
@@ -153,7 +145,7 @@ Begin VB.Form frmAddIn
       OLEDropMode     =   1  'Manual
       TabIndex        =   2
       Top             =   180
-      Width           =   6225
+      Width           =   6360
    End
    Begin VB.ListBox List1 
       BeginProperty Font 
@@ -218,30 +210,12 @@ Attribute VB_Exposed = False
 ' Site:   http://sandsprite.com
 '
 
-
-Private Sub cmdHelp_Click()
-
-    txtAbout = "Build Path once set will be used from then on out automatically as default and" & vbCrLf & _
-                "you will no longer be prompted every single time you want to generate the " & vbCrLf & _
-                "executable." & vbCrLf & _
-                "" & vbCrLf & _
-                "The post build command allows you to specify a command (or batch file) that" & vbCrLf & _
-                "you want run after your executable is built. Click the last cmd output button to" & vbCrLf & _
-                "see the results, or test to watch it live. This command supports several envirnoment" & vbCrLf & _
-                "variables which it can expand: " & vbCrLf & _
-                "" & vbCrLf & _
-                " %1           = exeFullPath" & vbCrLf & _
-                "%apppath = exe Home dir " & vbCrLf & _
-                "%outname = exe file name" & vbCrLf
-                
-End Sub
-
 Private Sub cmdTest_Click()
     Dim postbuild As String
     Dim ret As String
     
     postbuild = ExpandVars(txtPostBuild, txtBuildPath)
-    ret = RunCommand(postbuild)
+    ret = GetCommandOutput("cmd /c " & postbuild, True, True)
     
     txtAbout = "Expanded command script: " & vbCrLf & postbuild & vbCrLf & vbCrLf & _
                "Command output: " & vbCrLf & ret
@@ -282,7 +256,7 @@ End Sub
 
 Private Sub Form_Load()
     On Error Resume Next
-    Dim X
+    Dim x
     
     If isBuildPathSet() Then
         txtBuildPath = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "fullPath")
@@ -290,6 +264,19 @@ Private Sub Form_Load()
         
     txtPostBuild = GetPostBuildCommand
     
+     txtAbout = "Build Path once set will be used from then on out automatically as default" & vbCrLf & _
+                "and you will no longer be prompted every single time you want to generate the " & vbCrLf & _
+                "executable." & vbCrLf & _
+                "" & vbCrLf & _
+                "The post build command allows you to specify a command (or batch file) that" & vbCrLf & _
+                "you want run after your executable is built. Click the last cmd output " & vbCrLf & _
+                "button to see the results, or test to watch it live. This command" & vbCrLf & _
+                " supports several envirnoment variables which it can expand: " & vbCrLf & _
+                "" & vbCrLf & _
+                "%1           = exeFullPath" & vbCrLf & _
+                "%apppath = exe Home dir " & vbCrLf & _
+                "%outname = exe file name" & vbCrLf
+                
 '    List1.Clear
 '    For Each X In Module1.hookLog
 '        List1.AddItem X
@@ -317,11 +304,11 @@ End Sub
 
 
 
-Private Sub txtBuildPath_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub txtBuildPath_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, x As Single, Y As Single)
     On Error Resume Next
     Dim pth As String
     
-    pth = Data.Files(1)
+    pth = data.Files(1)
     
     If FileExists(pth) Then
         txtBuildPath = pth
@@ -334,12 +321,12 @@ Private Sub txtBuildPath_OLEDragDrop(Data As DataObject, Effect As Long, Button 
     
 End Sub
 
-Private Sub txtPostBuild_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub txtPostBuild_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, x As Single, Y As Single)
     
     On Error Resume Next
     Dim pth As String
     
-    pth = Data.Files(1)
+    pth = data.Files(1)
     
     If FileExists(pth) Then
         txtPostBuild = pth

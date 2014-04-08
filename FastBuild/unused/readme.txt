@@ -6,3 +6,15 @@
 ' lose the work..
 '
 ' live and learn!
+
+ This is a detours style hooking library written in C that was made for use with VB6.
+
+ You will have to write a C stub to call the original api though. 
+ There is a generic example one  included that takes one argument.
+
+ This is all complete and debugged, see sample code in the module. The hook proc is
+ designed to be implemented in VB. See notes above..
+
+ Library supports adding hooks, enable/disable hooks, and completely removing hooks
+ in preparation for unload or shutdown.
+
