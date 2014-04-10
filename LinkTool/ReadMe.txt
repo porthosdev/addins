@@ -37,6 +37,16 @@ Examples:
     compiled, the functions are linked right into the vb6 exe so you dont have 
     to distribute an extra dll.
 
+ md5_objfile
+    this is a compile in MD5 implementation to test examples of real world
+    complexity. This includes subfunctions, and compile in vc runtime functions
+    such as memcpy, memset, and strlen.
+
+ global_objfile
+    this test is just to double check and make sure nothing unexpected happened
+    when using global variables from your C obj files.
+
+
 
 See the pdf and link tool source for more details.
 

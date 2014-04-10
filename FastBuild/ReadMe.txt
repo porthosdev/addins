@@ -29,3 +29,14 @@ gives you a streamlined form to add ActiveX control references.
 a video walkthrough of the addin is available here:
 
 http://www.youtube.com/embed/bLfvaYNIhzk?list=UUhIoXVvn4ViA3AL4FJW8Yzw
+
+Note: I removed the Compile button because it has inconsistant behavior and
+can fail silently. I could work around the bug I found and test it more
+but you can add your own build button manually that works right.
+
+1) right click on the button bar and choose customize
+2) commands tab, choose File in left list, then drag and drop Make <Project>
+    to some where on the button bar. it will appear there now.
+3) right click on the new button and you can set the name, and image as you want.
+
+

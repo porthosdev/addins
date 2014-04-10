@@ -1,5 +1,5 @@
 Attribute VB_Name = "Module2"
-Global LastCommandOutput As String
+Public LastCommandOutput As String
 Public VBInstance As VBIDE.VBE
 Public Connect As Connect
 
@@ -12,9 +12,8 @@ Function ExpandVars(ByVal cmd As String, exeFullPath As String) As String
     fName = FileNameFromPath(exeFullPath)
     
     ExpandVars = Replace(cmd, "%1", exeFullPath)
-    ExpandVars = Replace(ExpandVars, "%apppath", appDir, , , vbTextCompare)
-    ExpandVars = Replace(ExpandVars, "%outname", fName, , , vbTextCompare)
-    'ExpandVars = Replace(ExpandVars, "%vb", VB6FOLDER, , , vbTextCompare)
+    ExpandVars = Replace(ExpandVars, "%app", appDir, , , vbTextCompare)
+    ExpandVars = Replace(ExpandVars, "%fname", fName, , , vbTextCompare)
     
 End Function
 
@@ -29,6 +28,15 @@ Function isBuildPathSet() As Boolean
     isBuildPathSet = True
     
 End Function
+
+'set the current directory to be parent folder as vbp folder path...
+Sub SetHomeDir()
+    On Error Resume Next
+    Dim homeDir As String
+    homeDir = VBInstance.ActiveVBProject.FileName 'path to vbp file
+    homeDir = GetParentFolder(homeDir)
+    If Len(homeDir) > 0 Then ChDir homeDir
+End Sub
 
 Function GetPostBuildCommand() As String
     On Error Resume Next
@@ -45,24 +53,28 @@ End Function
 Function FileExists(path) As Boolean
   On Error Resume Next
   If Len(path) = 0 Then Exit Function
-  If Dir(path, vbHidden Or vbNormal Or vbReadOnly Or vbSystem) <> "" Then FileExists = True _
-  Else FileExists = False
+  If Dir(path, vbHidden Or vbNormal Or vbReadOnly Or vbSystem) <> "" Then FileExists = True
+  If Err.Number <> 0 Then FileExists = False
 End Function
 
 Function FolderExists(path) As Boolean
   On Error Resume Next
   If Len(path) = 0 Then Exit Function
-  If Dir(path, vbDirectory) <> "" Then FolderExists = True _
-  Else FolderExists = False
+  If Dir(path, vbDirectory) <> "" Then FolderExists = True
+  If Err.Number <> 0 Then FolderExists = False
 End Function
 
 Function GetParentFolder(path) As String
     On Error Resume Next
     Dim tmp() As String
-    Dim ub As Long
+    Dim ub As String
+    If Len(path) = 0 Then Exit Function
+    If InStr(path, "\") < 1 Then Exit Function
+    If Right(path, 1) = "\" Then path = Mid(path, 1, Len(path) - 1)
     tmp = Split(path, "\")
     ub = tmp(UBound(tmp))
     GetParentFolder = Replace(Join(tmp, "\"), "\" & ub, "")
+    If Err.Number <> 0 Then GetParentFolder = Empty
 End Function
 
 Function FileNameFromPath(fullpath) As String

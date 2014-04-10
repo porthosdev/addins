@@ -213,7 +213,9 @@ Attribute VB_Exposed = False
 Private Sub cmdTest_Click()
     Dim postbuild As String
     Dim ret As String
+    Dim homeDir As String
     
+    SetHomeDir
     postbuild = ExpandVars(txtPostBuild, txtBuildPath)
     ret = GetCommandOutput("cmd /c " & postbuild, True, True)
     
@@ -230,12 +232,15 @@ Private Sub cmdUpdate_Click()
         Exit Sub
      End If
      
+     txtBuildPath = Replace(txtBuildPath, "/", "\")
+     
      VBInstance.ActiveVBProject.WriteProperty "fastBuild", "fullPath", txtBuildPath
      
      If Err.Number = 0 Then
-        MsgBox "This build path has been set as default, you will not be prompted " & vbCrLf & _
-               "again and must change it here or in the projects vbp file as long " & vbCrLf & _
-               "as this plugin is active.", vbInformation
+        txtAbout = "This build path has been set as default, you will not be prompted " & vbCrLf & _
+                    "again and must change it here or in the projects vbp file as long " & vbCrLf & _
+                    "as this plugin is active. " & vbCrLf & vbCrLf & _
+                    "Note you can use relative paths such as .\file.exe or .\..\file.exe"
      Else
         MsgBox "Save failed: " & Err.Description, vbCritical
      End If
@@ -251,7 +256,7 @@ Private Sub Command1_Click()
 End Sub
 
 Private Sub Command2_Click()
-    txtAbout = LastCommandOutput
+    txtAbout = Module2.LastCommandOutput
 End Sub
 
 Private Sub Form_Load()
@@ -273,9 +278,9 @@ Private Sub Form_Load()
                 "button to see the results, or test to watch it live. This command" & vbCrLf & _
                 " supports several envirnoment variables which it can expand: " & vbCrLf & _
                 "" & vbCrLf & _
-                "%1           = exeFullPath" & vbCrLf & _
-                "%apppath = exe Home dir " & vbCrLf & _
-                "%outname = exe file name" & vbCrLf
+                "%1     = exe FullPath" & vbCrLf & _
+                "%app   = exe Home dir " & vbCrLf & _
+                "%fname = exe file name" & vbCrLf
                 
 '    List1.Clear
 '    For Each X In Module1.hookLog

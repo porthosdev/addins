@@ -27,27 +27,26 @@ Option Explicit
 'vb actually already exposed the necessary events as part of the addin model..
 'oops there goes a solid days labor..
 
-Public FormDisplayed          As Boolean
-Public VBInstance             As VBIDE.VBE
-Dim mfrmAddIn                 As New frmAddIn
+Private FormDisplayed           As Boolean
+Private VBInstance              As VBIDE.VBE
+Dim mfrmAddIn                   As New frmAddIn
 
-Dim mcbFastBuildUI               As Office.CommandBarControl
-Public WithEvents mnuFastBuildUI As CommandBarEvents
+Dim mcbFastBuildUI                As Office.CommandBarControl
+Private WithEvents mnuFastBuildUI As CommandBarEvents
 Attribute mnuFastBuildUI.VB_VarHelpID = -1
 
-Dim mcbFastBuild         As Office.CommandBarControl
-Public WithEvents mnuFastBuild As CommandBarEvents
-Attribute mnuFastBuild.VB_VarHelpID = -1
+'Dim mcbFastBuild                As Office.CommandBarControl
+'Private WithEvents mnuFastBuild As CommandBarEvents
 
-Public WithEvents FileEvents As VBIDE.FileControlEvents
+Private WithEvents FileEvents As VBIDE.FileControlEvents
 Attribute FileEvents.VB_VarHelpID = -1
 
-Dim mcbExecute               As Office.CommandBarControl
-Public WithEvents mnuExecute As CommandBarEvents
+Dim mcbExecute                As Office.CommandBarControl
+Private WithEvents mnuExecute As CommandBarEvents
 Attribute mnuExecute.VB_VarHelpID = -1
 
-Dim mcbAddref               As Office.CommandBarControl
-Public WithEvents mnuAddref As CommandBarEvents
+Dim mcbAddref                As Office.CommandBarControl
+Private WithEvents mnuAddref As CommandBarEvents
 Attribute mnuAddref.VB_VarHelpID = -1
 
 
@@ -102,18 +101,18 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
         Me.Show
     Else
         Set mcbFastBuildUI = AddButton("Fast Build", 101) 'AddToAddInCommandBar("Fast Build")
-        Set Me.mnuFastBuildUI = VBInstance.Events.CommandBarEvents(mcbFastBuildUI)
+        Set mnuFastBuildUI = VBInstance.Events.CommandBarEvents(mcbFastBuildUI)
         
-        Set mcbFastBuild = AddButton("Compile", 103)
-        Set Me.mnuFastBuild = VBInstance.Events.CommandBarEvents(mcbFastBuild)
+        'Set mcbFastBuild = AddButton("Compile", 103)
+        'Set mnuFastBuild = VBInstance.Events.CommandBarEvents(mcbFastBuild)
         
         Set mcbExecute = AddButton("Execute", 102)
-        Set Me.mnuExecute = VBInstance.Events.CommandBarEvents(mcbExecute)
+        Set mnuExecute = VBInstance.Events.CommandBarEvents(mcbExecute)
  
         Set mcbAddref = AddrefMenu("Quick AddRef")
-        Set Me.mnuAddref = VBInstance.Events.CommandBarEvents(mcbAddref)
+        Set mnuAddref = VBInstance.Events.CommandBarEvents(mcbAddref)
         
-        Set Me.FileEvents = Application.Events.FileControlEvents(Nothing)
+        Set FileEvents = Application.Events.FileControlEvents(Nothing)
         
         Set Module2.VBInstance = VBInstance
         Set Module2.Connect = Me
@@ -140,8 +139,8 @@ End Sub
 Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjects.ext_DisconnectMode, custom() As Variant)
     On Error Resume Next
     
+    'mcbFastBuild.Delete
     mcbFastBuildUI.Delete
-    mcbFastBuild.Delete
     mcbExecute.Delete
     mcbAddref.Delete
     
@@ -149,6 +148,12 @@ Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjec
     Unload mfrmAddIn
     Set mfrmAddIn = Nothing
 
+    'release all references so object can shut down and remove itself..
+    'otherwise you wont be able to unload and compile, you will have to restart ide
+    Set Module2.VBInstance = Nothing
+    Set Module2.Connect = Nothing
+    Set VBInstance = Nothing
+    
     'RemoveAllHooks
     'UnInitilizeHookLib
     'FreeLibrary hHookLib
@@ -167,6 +172,7 @@ Private Sub FileEvents_AfterWriteFile(ByVal VBProject As VBIDE.VBProject, ByVal 
     postbuild = GetPostBuildCommand()
     
     If Len(postbuild) > 0 Then
+        SetHomeDir
         postbuild = ExpandVars(postbuild, FileName)
         LastCommandOutput = GetCommandOutput("cmd /c " & postbuild, True, True)
     End If
@@ -177,14 +183,26 @@ End Sub
 Private Sub FileEvents_DoGetNewFileName(ByVal VBProject As VBIDE.VBProject, ByVal FileType As VBIDE.vbext_FileType, NewName As String, ByVal OldName As String, CancelDefault As Boolean)
     Dim fastBuildPath As String
     
-    If FileType <> vbext_ft_Exe Then Exit Sub
-    If Not isBuildPathSet() Then Exit Sub
+    If FileType <> vbext_ft_Exe Then
+        'MsgBox "Filetype: " & FileType
+        Exit Sub
+    End If
+    
+    If Not isBuildPathSet() Then
+        'MsgBox "Build path not set"
+        Exit Sub
+    End If
      
     fastBuildPath = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "fullPath")
-    If Len(fastBuildPath) > 0 Then
-        NewName = fastBuildPath
-        CancelDefault = True
+    If Len(fastBuildPath) = 0 Then
+        'MsgBox "fast build path empty?"
+        Exit Sub
     End If
+    
+    'MsgBox "overriding path!"
+    NewName = fastBuildPath
+    OldName = fastBuildPath
+    CancelDefault = True
  
 End Sub
 
@@ -196,10 +214,21 @@ Private Sub mnuFastBuildUI_Click(ByVal CommandBarControl As Object, handled As B
     Me.Show
 End Sub
 
-Private Sub mnuFastBuild_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
-    On Error Resume Next
-    VBInstance.ActiveVBProject.MakeCompiledFile
-End Sub
+'I am removing this method..it has bugs in how MakeCompiledFile is implemented..
+'if the path you specify in BuildFileName is not valid, then it will fail without error
+'I could work around it, but its better to manually add a Build tool bar button from the command bar editor.
+'
+'Private Sub mnuFastBuild_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+'    On Error Resume Next
+'
+'    If isBuildPathSet() Then
+'        VBInstance.ActiveVBProject.BuildFileName = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "fullPath")
+'    End If
+'
+'    'apparently calling this method manually like this just uses the default and skips DoGetNewFileName hooks..
+'    VBInstance.ActiveVBProject.MakeCompiledFile
+'
+'End Sub
 
 Private Sub mnuExecute_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
     On Error Resume Next
@@ -219,10 +248,14 @@ Private Sub mnuExecute_Click(ByVal CommandBarControl As Object, handled As Boole
     
     Shell fastBuildPath, vbNormalFocus
     
+    If Err.Number <> 0 Then
+        MsgBox Err.Description, vbExclamation
+    End If
+    
 End Sub
 
 
-Function AddToAddInCommandBar(sCaption As String) As Office.CommandBarControl
+Private Function AddToAddInCommandBar(sCaption As String) As Office.CommandBarControl
     Dim cbMenuCommandBar As Office.CommandBarControl
     Dim cbMenu As Object
 

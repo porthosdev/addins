@@ -1,0 +1,3 @@
+AddObj "%apppath\c_obj.obj"
+Status 
+#DEBUG

@@ -12,6 +12,9 @@ Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
+' Author: David Zimmer
+' Site:   http://sandsprite.com
+'
 
 Private Type SECURITY_ATTRIBUTES
     nLength As Long

@@ -52,16 +52,34 @@ Begin VB.Form frmAddRefs
    Begin VB.Frame Frame1 
       BorderStyle     =   0  'None
       Height          =   465
-      Left            =   720
+      Left            =   765
       TabIndex        =   3
       Top             =   3195
-      Width           =   3705
+      Width           =   3795
       Begin VB.TextBox txtSearch 
          Height          =   285
          Left            =   855
          TabIndex        =   4
          Top             =   90
          Width           =   2625
+      End
+      Begin VB.Label Label2 
+         Caption         =   "?"
+         BeginProperty Font 
+            Name            =   "MS Sans Serif"
+            Size            =   8.25
+            Charset         =   0
+            Weight          =   400
+            Underline       =   -1  'True
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+         ForeColor       =   &H00FF0000&
+         Height          =   240
+         Left            =   3600
+         TabIndex        =   8
+         Top             =   135
+         Width           =   195
       End
       Begin VB.Label Label1 
          Caption         =   "Search"
@@ -82,6 +100,7 @@ Begin VB.Form frmAddRefs
       _ExtentY        =   7329
       _Version        =   393216
       TabOrientation  =   1
+      Style           =   1
       Tabs            =   2
       TabHeight       =   520
       TabCaption(0)   =   "Components"
@@ -154,6 +173,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+' Author: David Zimmer
+' Site:   http://sandsprite.com
+'
 Dim reg As New CReg
 Dim tlbs As Collection
 Dim selEntry As CEntry
@@ -171,9 +193,9 @@ Private Sub Form_Load()
     
     Set tlbs = New Collection
     
-    Me.Visible = True
-    Me.Refresh
-    DoEvents
+    'Me.Visible = True
+    'Me.Refresh
+    'DoEvents
     
     reg.hive = HKEY_CLASSES_ROOT
     BuildComponentList
@@ -191,11 +213,12 @@ Function BuildReferenceList()
     Dim vers() As String
     Dim revs() As String
     Dim c As New Collection
+    Dim lia As ListItem
     
     If reg.hive = HKEY_CLASSES_ROOT Then
         clsids = reg.EnumKeys("\TypeLib")
     Else
-        Stop
+        'Stop
         'clsids = reg.EnumKeys("\SOFTWARE\Classes\CLSID")
     End If
     
@@ -223,8 +246,10 @@ Function BuildReferenceList()
                 If Not KeyExistsInCollection(.name, c) Then
                     Set li = lv2.ListItems.Add(, , .name)
                     Set li.Tag = e
-                    .AlreadyReferenced = RefAlreadyExists(.clsid)
-                     li.Checked = .AlreadyReferenced
+                    If RefAlreadyExists(.clsid) Then
+                        .AlreadyReferenced = True
+                        li.Checked = True
+                    End If
                     c.Add e, .name
                 End If
             End If
@@ -300,7 +325,6 @@ Function BuildComponentList()
         
         With e
         
-            DoEvents
             .isControl = reg.keyExists(clsid & "\Control")
             If .isControl = False Then
                 If reg.keyExists(clsid & catid_control) Then .isControl = True
@@ -411,6 +435,10 @@ oops: AryIsEmpty = True
 End Function
  
 
+Private Sub Label2_Click()
+    MsgBox "Case insensitive search. Type 'checked' to see active references", vbInformation
+End Sub
+
 Private Sub lvFiltered_ItemCheck(ByVal item As MSComctlLib.ListItem)
     
     Dim li As ListItem
@@ -465,6 +493,8 @@ Sub HandleItemCheck(ByVal item As MSComctlLib.ListItem)
             MsgBox "Could not find reference to " & guid
             Exit Sub
         End If
+        'this can fail for default references..a boolean return would have been nice..
+        'we should recheck getreference and recheck box if it failed..but to lazy for small bug..
         VBInstance.ActiveVBProject.References.Remove r
         selEntry.AlreadyReferenced = False
     End If
@@ -472,7 +502,7 @@ Sub HandleItemCheck(ByVal item As MSComctlLib.ListItem)
     
     Exit Sub
 hell:
-    MsgBox Err.Description
+    MsgBox "Error: " & Err.Description
     
 End Sub
 
@@ -518,7 +548,11 @@ Private Sub txtSearch_Change()
     lvFiltered.ListItems.Clear
     
     For Each li In llv.ListItems
-        If InStr(1, li.Text, txtSearch, vbTextCompare) > 0 Then
+        If txtSearch = "checked" And li.Checked Then
+            Set li2 = lvFiltered.ListItems.Add(, , li.Text)
+            Set li2.Tag = li.Tag
+            li2.Checked = li.Checked
+        ElseIf InStr(1, li.Text, txtSearch, vbTextCompare) > 0 Then
             Set li2 = lvFiltered.ListItems.Add(, , li.Text)
             Set li2.Tag = li.Tag
             li2.Checked = li.Checked

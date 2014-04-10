@@ -32,8 +32,10 @@ Function ToString() As String
     If Len(progID) > 0 Then push tmp, "ProgID:  " & progID
     
     push tmp, "Path:    " & path
-    push tmp, "Version: " & version & IIf(isControl, " OCX", " DLL")
-    push tmp, "TypeLib: " & typeLib
+    push tmp, "Version: " & version
+    
+    If Len(typeLib) > 0 Then push tmp, "TypeLib: " & typeLib
+    
     push tmp, "CLSID:   " & clsid
     
     ToString = Join(tmp, vbCrLf)
