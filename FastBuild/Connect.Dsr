@@ -26,6 +26,12 @@ Option Explicit
 'this used to use the API Hooking code in Module1.bas, until i learned
 'vb actually already exposed the necessary events as part of the addin model..
 'oops there goes a solid days labor..
+'
+'It would be neat to hook createprocessA like compiler control, and give build window output
+'like compiling xxx.obj, linking, running post build command..
+'code is already there from chamberlin, but really just extra noise..except for the postbuild output..
+'
+'also would be nice to be able to write postbuild command output to debug window..but havent found way yet..
 
 Private FormDisplayed           As Boolean
 Private VBInstance              As VBIDE.VBE
@@ -48,6 +54,10 @@ Attribute mnuExecute.VB_VarHelpID = -1
 Dim mcbAddref                As Office.CommandBarControl
 Private WithEvents mnuAddref As CommandBarEvents
 Attribute mnuAddref.VB_VarHelpID = -1
+
+Dim mcbImmediate                As Office.CommandBarControl
+Private WithEvents mnuImmediate As CommandBarEvents
+Attribute mnuImmediate.VB_VarHelpID = -1
 
 
 Sub Hide()
@@ -109,6 +119,9 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
         Set mcbExecute = AddButton("Execute", 102)
         Set mnuExecute = VBInstance.Events.CommandBarEvents(mcbExecute)
  
+        Set mcbImmediate = AddButton("Clear Immediate Window", 104)
+        Set mnuImmediate = VBInstance.Events.CommandBarEvents(mcbImmediate)
+
         Set mcbAddref = AddrefMenu("Quick AddRef")
         Set mnuAddref = VBInstance.Events.CommandBarEvents(mcbAddref)
         
@@ -143,6 +156,7 @@ Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjec
     mcbFastBuildUI.Delete
     mcbExecute.Delete
     mcbAddref.Delete
+    mcbImmediate.Delete
     
     Unload frmAddRefs
     Unload mfrmAddIn
@@ -224,6 +238,9 @@ End Sub
 '    If isBuildPathSet() Then
 '        VBInstance.ActiveVBProject.BuildFileName = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "fullPath")
 '    End If
+'
+'    'if you want to readd this..first test that buildfilename path is valid for the system, then after compile test that
+'    'the exe file was created and is different from what was there..
 '
 '    'apparently calling this method manually like this just uses the default and skips DoGetNewFileName hooks..
 '    VBInstance.ActiveVBProject.MakeCompiledFile
@@ -307,10 +324,21 @@ Private Function AddrefMenu(caption As String) As Office.CommandBarControl
     Next
     If i = cbProjMenu.Controls.Count Then Exit Function
 
-    Set AddrefMenu = cbProjMenu.Controls.Add(, , , i + 1) 'add the menu before the References ... menu
+    Set AddrefMenu = cbProjMenu.Controls.Add(, , , i + 2) 'add the menu before the References ... menu
     AddrefMenu.caption = caption
 
 hell:
 
 End Function
 
+'clear the immediate window
+Private Sub mnuImmediate_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    On Error Resume Next
+    Dim oWindow As VBIDE.Window
+    Set oWindow = VBInstance.ActiveWindow
+    VBInstance.Windows("Immediate").SetFocus
+    SendKeys "^{Home}", True
+    SendKeys "^+{End}", True
+    SendKeys "{Del}", True
+    oWindow.SetFocus
+End Sub
