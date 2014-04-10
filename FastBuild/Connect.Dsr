@@ -41,8 +41,9 @@ Dim mcbFastBuildUI                As Office.CommandBarControl
 Private WithEvents mnuFastBuildUI As CommandBarEvents
 Attribute mnuFastBuildUI.VB_VarHelpID = -1
 
-'Dim mcbFastBuild                As Office.CommandBarControl
-'Private WithEvents mnuFastBuild As CommandBarEvents
+Dim mcbFastBuild                As Office.CommandBarControl
+Private WithEvents mnuFastBuild As CommandBarEvents
+Attribute mnuFastBuild.VB_VarHelpID = -1
 
 Private WithEvents FileEvents As VBIDE.FileControlEvents
 Attribute FileEvents.VB_VarHelpID = -1
@@ -58,6 +59,13 @@ Attribute mnuAddref.VB_VarHelpID = -1
 Dim mcbImmediate                As Office.CommandBarControl
 Private WithEvents mnuImmediate As CommandBarEvents
 Attribute mnuImmediate.VB_VarHelpID = -1
+
+Dim mcbRealMakeMenu As Office.CommandBarControl
+'Private WithEvents mnuMake As CommandBarEvents 'we could hook into its events here if we wanted..
+
+Dim mcbRealStartButton As Office.CommandBarControl
+Private WithEvents mnuRealRun As CommandBarEvents 'hook into existing controls events
+Attribute mnuRealRun.VB_VarHelpID = -1
 
 
 Sub Hide()
@@ -110,12 +118,12 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
         'Used by the wizard toolbar to start this wizard
         Me.Show
     Else
+    
+        ClearImmediateOnStart = GetSetting("fastbuild", "settings", "ClearImmediateOnStart", 1)
+        
         Set mcbFastBuildUI = AddButton("Fast Build", 101) 'AddToAddInCommandBar("Fast Build")
         Set mnuFastBuildUI = VBInstance.Events.CommandBarEvents(mcbFastBuildUI)
-        
-        'Set mcbFastBuild = AddButton("Compile", 103)
-        'Set mnuFastBuild = VBInstance.Events.CommandBarEvents(mcbFastBuild)
-        
+               
         Set mcbExecute = AddButton("Execute", 102)
         Set mnuExecute = VBInstance.Events.CommandBarEvents(mcbExecute)
  
@@ -126,6 +134,18 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
         Set mnuAddref = VBInstance.Events.CommandBarEvents(mcbAddref)
         
         Set FileEvents = Application.Events.FileControlEvents(Nothing)
+        
+        Set mcbRealStartButton = FindRunButton()
+        If Not mcbRealStartButton Is Nothing Then
+            Set mnuRealRun = VBInstance.Events.CommandBarEvents(mcbRealStartButton)
+        End If
+        
+        Set mcbRealMakeMenu = FindMakeMenu()
+        If Not mcbRealMakeMenu Is Nothing Then
+        '   Set mnuMake = VBInstance.Events.CommandBarEvents(FindMakeMenu) 'hook into the events of an existing menu item..
+            Set mcbFastBuild = AddButton("Compile", 103)
+            Set mnuFastBuild = VBInstance.Events.CommandBarEvents(mcbFastBuild)
+        End If
         
         Set Module2.VBInstance = VBInstance
         Set Module2.Connect = Me
@@ -151,8 +171,8 @@ End Sub
 '------------------------------------------------------
 Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjects.ext_DisconnectMode, custom() As Variant)
     On Error Resume Next
-    
-    'mcbFastBuild.Delete
+        
+    If Not mcbFastBuild Is Nothing Then mcbFastBuild.Delete
     mcbFastBuildUI.Delete
     mcbExecute.Delete
     mcbAddref.Delete
@@ -228,12 +248,14 @@ Private Sub mnuFastBuildUI_Click(ByVal CommandBarControl As Object, handled As B
     Me.Show
 End Sub
 
+Private Sub mnuFastBuild_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    On Error Resume Next
+
+    mcbRealMakeMenu.Execute
+    
 'I am removing this method..it has bugs in how MakeCompiledFile is implemented..
 'if the path you specify in BuildFileName is not valid, then it will fail without error
 'I could work around it, but its better to manually add a Build tool bar button from the command bar editor.
-'
-'Private Sub mnuFastBuild_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
-'    On Error Resume Next
 '
 '    If isBuildPathSet() Then
 '        VBInstance.ActiveVBProject.BuildFileName = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "fullPath")
@@ -244,8 +266,8 @@ End Sub
 '
 '    'apparently calling this method manually like this just uses the default and skips DoGetNewFileName hooks..
 '    VBInstance.ActiveVBProject.MakeCompiledFile
-'
-'End Sub
+
+End Sub
 
 Private Sub mnuExecute_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
     On Error Resume Next
@@ -306,6 +328,25 @@ Private Function AddButton(caption As String, resImg As Long) As Office.CommandB
     Clipboard.SetText orgData
 End Function
 
+Private Function FindRunButton() As Office.CommandBarControl
+    
+    Dim cbToolbar As Office.CommandBar
+    Dim cbSubMenu As Office.CommandBarControl
+    
+    For Each cbToolbar In VBInstance.CommandBars
+        'Debug.Print "Toolbar: " & cbToolbar.Index
+        'If cbToolbar.Index = 17 Then Stop
+        For Each cbSubMenu In cbToolbar.Controls
+            'Debug.Print vbTab & cbSubMenu.caption
+            If cbSubMenu.caption = "&Start" Then
+                Set FindRunButton = cbSubMenu
+                Exit Function
+            End If
+        Next
+    Next
+    
+End Function
+
 Private Function AddrefMenu(caption As String) As Office.CommandBarControl
 
     Dim cbProjMenu As Office.CommandBarControl
@@ -331,6 +372,31 @@ hell:
 
 End Function
 
+Private Function FindMakeMenu() As Office.CommandBarControl
+
+    Dim cbFileMenu As Office.CommandBarControl
+    Dim cbSubMenu As Office.CommandBarControl
+    Dim i As Long
+    
+    On Error GoTo hell
+
+    Set cbFileMenu = VBInstance.CommandBars(1).Controls("File")
+    
+    If cbFileMenu Is Nothing Then Exit Function
+
+    For Each cbSubMenu In cbFileMenu.Controls
+        i = i + 1
+        Debug.Print cbSubMenu.caption
+        If InStr(cbSubMenu.caption, "Ma&ke") > 0 Or cbSubMenu.caption = "Make..." Then
+            Set FindMakeMenu = cbSubMenu
+            Exit Function
+        End If
+    Next
+
+hell:
+
+End Function
+
 'clear the immediate window
 Private Sub mnuImmediate_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
     On Error Resume Next
@@ -341,4 +407,14 @@ Private Sub mnuImmediate_Click(ByVal CommandBarControl As Object, handled As Boo
     SendKeys "^+{End}", True
     SendKeys "{Del}", True
     oWindow.SetFocus
+End Sub
+
+Private Sub mnuMake_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    MsgBox "user clicked existing make menu!"
+End Sub
+
+Private Sub mnuRealRun_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    If ClearImmediateOnStart = 1 Then
+        mnuImmediate_Click CommandBarControl, handled, CancelDefault
+    End If
 End Sub

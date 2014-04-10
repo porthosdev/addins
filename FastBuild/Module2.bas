@@ -2,6 +2,7 @@ Attribute VB_Name = "Module2"
 Public LastCommandOutput As String
 Public VBInstance As VBIDE.VBE
 Public Connect As Connect
+Public ClearImmediateOnStart As Long
 
 Function ExpandVars(ByVal cmd As String, exeFullPath As String) As String
     Dim appDir As String

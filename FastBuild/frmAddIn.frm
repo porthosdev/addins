@@ -13,6 +13,14 @@ Begin VB.Form frmAddIn
    ScaleHeight     =   4605
    ScaleWidth      =   10050
    StartUpPosition =   2  'CenterScreen
+   Begin VB.CheckBox chkClearImmediate 
+      Caption         =   "Clear Immediate Window On Start"
+      Height          =   330
+      Left            =   2385
+      TabIndex        =   14
+      Top             =   990
+      Width           =   3480
+   End
    Begin VB.CommandButton Command2 
       Caption         =   "Last CMD Output"
       Height          =   285
@@ -210,6 +218,11 @@ Attribute VB_Exposed = False
 ' Site:   http://sandsprite.com
 '
 
+Private Sub chkClearImmediate_Click()
+    ClearImmediateOnStart = chkClearImmediate.value
+    SaveSetting "fastbuild", "settings", "ClearImmediateOnStart", chkClearImmediate.value
+End Sub
+
 Private Sub cmdTest_Click()
     Dim postbuild As String
     Dim ret As String
@@ -267,6 +280,8 @@ Private Sub Form_Load()
         txtBuildPath = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "fullPath")
     End If
         
+    chkClearImmediate.value = ClearImmediateOnStart
+    
     txtPostBuild = GetPostBuildCommand
     
      txtAbout = "Build Path once set will be used from then on out automatically as default" & vbCrLf & _

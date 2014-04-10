@@ -1,0 +1,366 @@
+FullName: C:\Program Files\Microsoft Visual Studio\VB98\VB6.EXE
+Toolbar: 1
+    &File
+    &Edit
+    &View
+    &Project
+    F&ormat
+    &Debug
+    &Run
+    Q&uery
+    D&iagram
+    &Tools
+    &Add-Ins
+    &Window
+    &Help
+Toolbar: 2
+    Add Project
+    Insert Object
+    &Menu Editor...
+    &Open Project...
+    Sa&ve Project
+    Cu&t
+    &Copy
+    &Paste
+    &Find...
+    Can't Undo
+    Can't Redo
+    &Start
+    Brea&k
+    &End
+    &Project Explorer
+    Data View Window
+    Visual Component Manager
+    VB Resource Editor
+    Memory
+    Fast Build
+    Execute
+    Clear Immediate Window
+    Properties &Window
+Toolbar: 3
+    List Properties/Met&hods
+    Li&st Constants
+    &Quick Info
+    Para&meter Info
+    Complete &Word
+    &Indent
+    &Outdent
+    &Toggle Breakpoint
+    Comment Block
+    Uncomment Block
+    &Toggle Bookmark
+    &Next Bookmark
+    &Previous Bookmark
+    &Clear All Bookmarks
+Toolbar: 4
+    &Start
+    Brea&k
+    &End
+    &Toggle Breakpoint
+    Step &Into
+    Step &Over
+    Step O&ut
+    Local&s Window
+    &Immediate Window
+    Watc&h Window
+    &Quick Watch...
+    Call Stac&k...
+Toolbar: 5
+    &Bring to Front
+    &Send to Back
+    &Align
+    &Center in Form
+    &Make Same Size
+    &Lock Controls
+Toolbar: 6
+    Save
+    Save As...
+    &Print...
+    Print Set&up...
+    View C&ode
+    View O&bject
+Toolbar: 7
+    &Form
+    MD&I Form
+    &Module
+    &Class Module
+    &User Control
+    P&roperty Page
+    User &Document
+    WebClass
+    DHTML Page
+    
+    
+    More ActiveX Desi&gners...
+    &Add File...
+    Resource File
+Toolbar: 8
+    Breakpoint
+    Break on All Errors
+    Break in Class Module
+    Break on Unhandled Errors
+    Bookmark
+Toolbar: 9
+    Set Primary Ke&y
+    &Insert Column
+    D&elete Column
+Toolbar: 10
+    &First
+    &Last
+    Ne&xt
+    Pre&vious
+    Ro&w
+    &New
+Toolbar: 11
+    &Column Properties
+    Column Na&mes
+    &Keys
+    &Name Only
+    C&ustom
+Toolbar: 12
+    200%
+    150%
+    100%
+    75%
+    50%
+    25%
+    10%
+    &Selection
+Toolbar: 13
+    &Diagram
+    &Grid
+    &SQL
+    &Results
+Toolbar: 14
+    &Select
+    &Insert
+    Insert &Values
+    &Update
+    &Delete
+    &Make Table
+Toolbar: 15
+    Cu&t
+    &Copy
+    &Paste
+    List Properties/Met&hods
+    Li&st Constants
+    &Quick Info
+    Para&meter Info
+    Complete &Word
+    &Toggle
+    &Object Browser
+    &Add Watch...
+    &Definition
+    Last Positio&n
+    &Hide
+Toolbar: 16
+    Cu&t
+    &Copy
+    &Paste
+    &Toggle
+    &Object Browser
+    &Add Watch...
+    &Run To Cursor
+    Set &Next Statement
+    Show Ne&xt Statement
+    &Definition
+    &Hide
+Toolbar: 17
+    Cu&t 
+    &Copy 
+    &Paste 
+    &Edit Watch... 
+    &Add Watch... 
+    &Delete Watch 
+    Co&llapse Parent 
+    &Start 
+    &End 
+    &Definition 
+    Doc&kable 
+    &Hide 
+Toolbar: 18
+    Cu&t 
+    &Copy 
+    &Paste 
+    &Object Browser 
+    &Definition 
+    &Start 
+    &End 
+    Doc&kable 
+    &Hide 
+Toolbar: 19
+    Cu&t 
+    &Copy 
+    &Paste 
+    Co&llapse Parent 
+    &Start 
+    &End 
+    Doc&kable 
+    &Hide 
+Toolbar: 20
+    View C&ode 
+    &Menu Editor... 
+    &Lock Controls 
+    &Paste 
+    Prope&rties 
+    Update &UserControls 
+Toolbar: 21
+    Cu&t 
+    &Copy 
+    &Paste 
+    &Delete 
+    &Bring to Front 
+    &Send to Back 
+    View C&ode 
+    Align to &Grid 
+    Prope&rties 
+Toolbar: 22
+    View C&ode 
+    View O&bject 
+    Prop&erties... 
+    &Add 
+    Save 
+    Save As... 
+    &Print... 
+    Doc&kable 
+    &Hide 
+Toolbar: 23
+    View C&ode 
+    View O&bject 
+    Prop&erties... 
+    &Add 
+    Save 
+    Save As... 
+    Doc&kable 
+    &Hide 
+Toolbar: 24
+    Resolution &Guides 
+    &Startup Position 
+    Doc&kable 
+    &Hide 
+Toolbar: 25
+    &Copy 
+    View &Definition 
+    &Find Whole Word Only 
+    Group &Members 
+    Show &Hidden Members 
+    &References... 
+    &Properties... 
+    He&lp 
+    Doc&kable 
+    &Hide 
+Toolbar: 26
+    C&omponents... 
+    &Add Tab... 
+    Doc&kable 
+    &Hide 
+Toolbar: 27
+    &Add Tab... 
+    &Delete Tab 
+    &Rename Tab... 
+    Move &Up 
+    Move Do&wn 
+Toolbar: 28
+    &Description 
+    Doc&kable 
+    &Hide 
+Toolbar: 29
+    De&fault 
+    Doc&kable 
+    &Hide 
+Toolbar: 30
+    Set as Start &Up 
+    Prop&erties... 
+    Sa&ve Project 
+    &Remove Project 
+    P&ublish 
+    &Add 
+    &Print... 
+    Doc&kable 
+    &Hide 
+Toolbar: 31
+    View O&bject 
+    View C&ode 
+    Prope&rties 
+    &Add 
+    Save 
+    Save As... 
+    &Remove 
+    C&heck Out 
+    Check &In 
+    &Print... 
+    Doc&kable 
+    &Hide 
+    P&ublish Component... 
+Toolbar: 32
+    View C&ode 
+    Prope&rties 
+    &Add 
+    Save 
+    Save As... 
+    &Remove 
+    C&heck Out 
+    Check &In 
+    &Print... 
+    Doc&kable 
+    &Hide 
+    P&ublish Component... 
+Toolbar: 33
+    Prope&rties 
+    &Add 
+    Save 
+    Save As... 
+    &Remove 
+    C&heck Out 
+    Check &In 
+    &Print... 
+    Doc&kable 
+    &Hide 
+Toolbar: 34
+    Doc&kable 
+    &Hide 
+Toolbar: 35
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+Toolbar: 36
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+    &Refresh 
+    Doc&kable 
+    &Hide 
+    &Add a Data Link... 
+    &Show System Objects 
+    &Filter by Owner 
+    &Properties... 
+
