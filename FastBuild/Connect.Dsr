@@ -272,7 +272,8 @@ End Sub
 Private Sub mnuExecute_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
     On Error Resume Next
     Dim fastBuildPath As String
-     
+    Dim cmdLine As String
+    
     If Not isBuildPathSet() Then
         MsgBox "Can not launch the executable, path not yet set", vbInformation
         Exit Sub
@@ -285,7 +286,11 @@ Private Sub mnuExecute_Click(ByVal CommandBarControl As Object, handled As Boole
         Exit Sub
     End If
     
-    Shell fastBuildPath, vbNormalFocus
+    cmdLine = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "ExecBtnCmdLine")
+    If Len(cmdLine) > 0 And Left(cmdLine, 1) <> " " Then cmdLine = " " & cmdLine
+    Err.Clear
+    
+    Shell fastBuildPath & cmdLine, vbNormalFocus
     
     If Err.Number <> 0 Then
         MsgBox Err.Description, vbExclamation

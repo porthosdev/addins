@@ -2,7 +2,7 @@ VERSION 5.00
 Begin VB.Form frmAddIn 
    BorderStyle     =   1  'Fixed Single
    Caption         =   "Fast Build Addin             http://sandsprite.com"
-   ClientHeight    =   4605
+   ClientHeight    =   4950
    ClientLeft      =   150
    ClientTop       =   435
    ClientWidth     =   10050
@@ -10,23 +10,57 @@ Begin VB.Form frmAddIn
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   4605
+   ScaleHeight     =   4950
    ScaleWidth      =   10050
    StartUpPosition =   2  'CenterScreen
+   Begin VB.CommandButton cmdSaveExec 
+      Caption         =   "Save"
+      BeginProperty Font 
+         Name            =   "Courier"
+         Size            =   9.75
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   285
+      Left            =   8865
+      TabIndex        =   17
+      Top             =   585
+      Width           =   1095
+   End
+   Begin VB.TextBox txtExecute 
+      BeginProperty Font 
+         Name            =   "Courier"
+         Size            =   9.75
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   285
+      Left            =   2385
+      OLEDropMode     =   1  'Manual
+      TabIndex        =   16
+      Top             =   540
+      Width           =   6360
+   End
    Begin VB.CheckBox chkClearImmediate 
       Caption         =   "Clear Immediate Window On Start"
       Height          =   330
       Left            =   2385
       TabIndex        =   14
-      Top             =   990
+      Top             =   1305
       Width           =   3480
    End
    Begin VB.CommandButton Command2 
       Caption         =   "Last CMD Output"
       Height          =   285
-      Left            =   7110
+      Left            =   7155
       TabIndex        =   13
-      Top             =   990
+      Top             =   1350
       Width           =   1590
    End
    Begin VB.CommandButton cmdTest 
@@ -34,7 +68,7 @@ Begin VB.Form frmAddIn
       Height          =   285
       Left            =   8865
       TabIndex        =   12
-      Top             =   990
+      Top             =   1350
       Width           =   1095
    End
    Begin VB.CommandButton Command1 
@@ -51,7 +85,7 @@ Begin VB.Form frmAddIn
       Height          =   285
       Left            =   8865
       TabIndex        =   11
-      Top             =   630
+      Top             =   990
       Width           =   1095
    End
    Begin VB.TextBox txtPostBuild 
@@ -68,7 +102,7 @@ Begin VB.Form frmAddIn
       Left            =   2385
       OLEDropMode     =   1  'Manual
       TabIndex        =   10
-      Top             =   630
+      Top             =   945
       Width           =   6360
    End
    Begin VB.TextBox txtAbout 
@@ -86,7 +120,7 @@ Begin VB.Form frmAddIn
       MultiLine       =   -1  'True
       ScrollBars      =   2  'Vertical
       TabIndex        =   7
-      Top             =   1395
+      Top             =   1710
       Width           =   9870
    End
    Begin VB.Frame Frame1 
@@ -172,6 +206,24 @@ Begin VB.Form frmAddIn
       Width           =   9825
    End
    Begin VB.Label Label1 
+      Caption         =   "Execute Btn CmdLine:"
+      BeginProperty Font 
+         Name            =   "Courier"
+         Size            =   9.75
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   240
+      Index           =   2
+      Left            =   45
+      TabIndex        =   15
+      Top             =   585
+      Width           =   2490
+   End
+   Begin VB.Label Label1 
       Caption         =   "Post Build Command"
       BeginProperty Font 
          Name            =   "Courier"
@@ -184,9 +236,9 @@ Begin VB.Form frmAddIn
       EndProperty
       Height          =   240
       Index           =   1
-      Left            =   90
+      Left            =   45
       TabIndex        =   9
-      Top             =   675
+      Top             =   990
       Width           =   2220
    End
    Begin VB.Label Label1 
@@ -221,6 +273,11 @@ Attribute VB_Exposed = False
 Private Sub chkClearImmediate_Click()
     ClearImmediateOnStart = chkClearImmediate.value
     SaveSetting "fastbuild", "settings", "ClearImmediateOnStart", chkClearImmediate.value
+End Sub
+
+Private Sub cmdSaveExec_Click()
+    On Error Resume Next
+    VBInstance.ActiveVBProject.WriteProperty "fastBuild", "ExecBtnCmdLine", Trim(txtExecute)
 End Sub
 
 Private Sub cmdTest_Click()
@@ -280,6 +337,8 @@ Private Sub Form_Load()
         txtBuildPath = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "fullPath")
     End If
         
+    txtExecute = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "ExecBtnCmdLine")
+    
     chkClearImmediate.value = ClearImmediateOnStart
     
     txtPostBuild = GetPostBuildCommand
@@ -297,29 +356,6 @@ Private Sub Form_Load()
                 "%app   = exe Home dir " & vbCrLf & _
                 "%fname = exe file name" & vbCrLf
                 
-'    List1.Clear
-'    For Each X In Module1.hookLog
-'        List1.AddItem X
-'    Next
-'
-'    txtAbout.Text = "This addin allows you to save a hardcoded default path to use everytime your " & vbCrLf & _
-'                    "binary is built. This setting is saved to the vbp project file the first time you specify" & vbCrLf & _
-'                    "a file name." & vbCrLf & _
-'                    "" & vbCrLf & _
-'                    "Once set, you will not be prompted again until you manually set it. The reason" & vbCrLf & _
-'                    "for this plugin is because:" & vbCrLf & _
-'                    "" & vbCrLf & _
-'                    "1) sometimes vb messes up and changes directories on you" & vbCrLf & _
-'                    "2) having to specify it everytime with a save file dialog and overwrite ok is annoying!" & vbCrLf & _
-'                    "" & vbCrLf & _
-'                    "This project uses an external open source hooking library written in C to " & vbCrLf & _
-'                    "do a detours style hook on the GetSaveFileNameA API. It will only override" & vbCrLf & _
-'                    "the default behavior if an executable extension is detected and if the default" & vbCrLf & _
-'                    "build path has already been set. " & vbCrLf & _
-'                    "" & vbCrLf & _
-'                    "You can download the binaries and source from the github archive:" & vbCrLf & _
-'                    "        https://github.com/dzzie/addins" & vbCrLf
-                    
 End Sub
 
 
