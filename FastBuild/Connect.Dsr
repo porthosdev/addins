@@ -63,6 +63,8 @@ Attribute mnuImmediate.VB_VarHelpID = -1
 Dim mcbRealMakeMenu As Office.CommandBarControl
 'Private WithEvents mnuMake As CommandBarEvents 'we could hook into its events here if we wanted..
 
+'vb6 ide bug..if you hold a reference to an existing button in an addin..it will disable the button
+'when you enter the run state as if it was owned by the addin..just use f5 or runstart button then..
 Dim mcbRealStartButton As Office.CommandBarControl
 Private WithEvents mnuRealRun As CommandBarEvents 'hook into existing controls events
 Attribute mnuRealRun.VB_VarHelpID = -1
@@ -120,6 +122,7 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
     Else
     
         ClearImmediateOnStart = GetSetting("fastbuild", "settings", "ClearImmediateOnStart", 1)
+        ShowPostBuildOutput = GetSetting("fastbuild", "settings", "ShowPostBuildOutput", 1)
         
         Set mcbFastBuildUI = AddButton("Fast Build", 101) 'AddToAddInCommandBar("Fast Build")
         Set mnuFastBuildUI = VBInstance.Events.CommandBarEvents(mcbFastBuildUI)
@@ -149,13 +152,7 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
         
         Set Module2.VBInstance = VBInstance
         Set Module2.Connect = Me
-        
-        'If Module1.IsIde() Then
-        '    Debug.Print "YOU CAN NOT DEBUG THE HOOK CODE IN THE IDE" 'it hooks the debugger instance not the remote one..
-        'Else
-        '    'SetHook 'detours style hook of GetSaveFileName
-        'End If
-        
+                
     End If
 
     Exit Sub
@@ -188,27 +185,34 @@ Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjec
     Set Module2.Connect = Nothing
     Set VBInstance = Nothing
     
-    'RemoveAllHooks
-    'UnInitilizeHookLib
-    'FreeLibrary hHookLib
-    
 End Sub
 
 Private Sub FileEvents_AfterWriteFile(ByVal VBProject As VBIDE.VBProject, ByVal FileType As VBIDE.vbext_FileType, ByVal FileName As String, ByVal result As Integer)
-        
+    
+    Dim postbuild As String
+    Dim buildOutput As String
+    
     If FileType <> vbext_ft_Exe Then Exit Sub
-       
+           
     If Not isBuildPathSet() Then
         VBInstance.ActiveVBProject.WriteProperty "fastBuild", "fullPath", FileName
     End If
     
-    Dim postbuild As String
+    LastCommandOutput = Empty
     postbuild = GetPostBuildCommand()
     
     If Len(postbuild) > 0 Then
         SetHomeDir
         postbuild = ExpandVars(postbuild, FileName)
         LastCommandOutput = GetCommandOutput("cmd /c " & postbuild, True, True)
+    End If
+    
+    If ShowPostBuildOutput = 1 Then
+        buildOutput = GetFileReport(FileName)
+        If Len(LastCommandOutput) > 0 Then
+            buildOutput = buildOutput & vbCrLf & vbCrLf & "Post Build Command Output: " & vbCrLf & String(50, "-") & vbCrLf & LastCommandOutput
+        End If
+        SetImmediateText buildOutput
     End If
     
     
@@ -402,8 +406,11 @@ hell:
 
 End Function
 
-'clear the immediate window
 Private Sub mnuImmediate_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    ClearImmediateWindow
+End Sub
+
+Sub ClearImmediateWindow()
     On Error Resume Next
     Dim oWindow As VBIDE.Window
     Set oWindow = VBInstance.ActiveWindow
@@ -412,6 +419,26 @@ Private Sub mnuImmediate_Click(ByVal CommandBarControl As Object, handled As Boo
     SendKeys "^+{End}", True
     SendKeys "{Del}", True
     oWindow.SetFocus
+End Sub
+
+Sub SetImmediateText(text As String)
+    On Error Resume Next
+    Dim oWindow As VBIDE.Window
+    Dim saved As String
+    
+    If Len(text) = 0 Then Exit Sub
+    
+    ClearImmediateWindow
+    saved = Clipboard.GetText
+    Clipboard.Clear
+    Clipboard.SetText text
+    
+    Set oWindow = VBInstance.ActiveWindow
+    VBInstance.Windows("Immediate").SetFocus
+    SendKeys "^v", True
+   
+    Clipboard.Clear
+    Clipboard.SetText saved
 End Sub
 
 Private Sub mnuMake_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)

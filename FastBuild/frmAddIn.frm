@@ -13,6 +13,14 @@ Begin VB.Form frmAddIn
    ScaleHeight     =   4950
    ScaleWidth      =   10050
    StartUpPosition =   2  'CenterScreen
+   Begin VB.CheckBox chkShowPostBuildOutput 
+      Caption         =   "Show Build Output"
+      Height          =   195
+      Left            =   2340
+      TabIndex        =   18
+      Top             =   1395
+      Width           =   1725
+   End
    Begin VB.CommandButton cmdSaveExec 
       Caption         =   "Save"
       BeginProperty Font 
@@ -49,11 +57,11 @@ Begin VB.Form frmAddIn
    End
    Begin VB.CheckBox chkClearImmediate 
       Caption         =   "Clear Immediate Window On Start"
-      Height          =   330
-      Left            =   2385
+      Height          =   375
+      Left            =   4275
       TabIndex        =   14
       Top             =   1305
-      Width           =   3480
+      Width           =   2715
    End
    Begin VB.CommandButton Command2 
       Caption         =   "Last CMD Output"
@@ -275,6 +283,11 @@ Private Sub chkClearImmediate_Click()
     SaveSetting "fastbuild", "settings", "ClearImmediateOnStart", chkClearImmediate.value
 End Sub
 
+Private Sub chkShowPostBuildOutput_Click()
+    ShowPostBuildOutput = chkShowPostBuildOutput.value
+    SaveSetting "fastbuild", "settings", "ShowPostBuildOutput", chkShowPostBuildOutput.value
+End Sub
+
 Private Sub cmdSaveExec_Click()
     On Error Resume Next
     VBInstance.ActiveVBProject.WriteProperty "fastBuild", "ExecBtnCmdLine", Trim(txtExecute)
@@ -340,6 +353,7 @@ Private Sub Form_Load()
     txtExecute = VBInstance.ActiveVBProject.ReadProperty("fastBuild", "ExecBtnCmdLine")
     
     chkClearImmediate.value = ClearImmediateOnStart
+    chkShowPostBuildOutput.value = ShowPostBuildOutput
     
     txtPostBuild = GetPostBuildCommand
     

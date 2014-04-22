@@ -3,6 +3,7 @@ Public LastCommandOutput As String
 Public VBInstance As VBIDE.VBE
 Public Connect As Connect
 Public ClearImmediateOnStart As Long
+Public ShowPostBuildOutput As Long
 
 Function ExpandVars(ByVal cmd As String, exeFullPath As String) As String
     Dim appDir As String
@@ -85,5 +86,59 @@ Function FileNameFromPath(fullpath) As String
     Else
         FileNameFromPath = fullpath
     End If
+End Function
+
+Function GetFileReport(fpath As String) As String
+    On Error Resume Next
+    
+    Dim MyStamp As Date
+    Dim ret() As String
+    
+    If Not FileExists(fpath) Then
+        GetFileReport = "Build Failed: " & fpath
+        Exit Function
+    End If
+    
+    MyStamp = FileDateTime(fpath)
+    
+    push ret, "Output File: " & fpath & "  (" & FileSize(fpath) & ")"
+    push ret, "Last Modified: " & Format(MyStamp, "dddd, mmmm dd, yyyy - h:mm:ss AM/PM")
+    
+    GetFileReport = Join(ret, vbCrLf)
+
+End Function
+
+Sub push(ary, value) 'this modifies parent ary object
+    On Error GoTo init
+    x = UBound(ary) '<-throws Error If Not initalized
+    ReDim Preserve ary(UBound(ary) + 1)
+    ary(UBound(ary)) = value
+    Exit Sub
+init: ReDim ary(0): ary(0) = value
+End Sub
+
+Public Function FileSize(fpath As String) As String
+    Dim fsize As Long
+    Dim szName As String
+    On Error GoTo hell
+    
+    fsize = FileLen(fpath)
+    
+    szName = " bytes"
+    If fsize > 1024 Then
+        fsize = fsize / 1024
+        szName = " Kb"
+    End If
+    
+    If fsize > 1024 Then
+        fsize = fsize / 1024
+        szName = " Mb"
+    End If
+    
+    FileSize = fsize & szName
+    
+    Exit Function
+hell:
+    
 End Function
 
