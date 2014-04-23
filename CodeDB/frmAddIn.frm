@@ -14,7 +14,7 @@ Begin VB.Form frmAddIn
    ShowInTaskbar   =   0   'False
    StartUpPosition =   2  'CenterScreen
    Begin VB.CommandButton Command2 
-      Caption         =   "Extras"
+      Caption         =   "Tools"
       Height          =   255
       Left            =   8460
       TabIndex        =   11
@@ -206,8 +206,8 @@ Private Sub Command1_Click(Index As Integer)
     Select Case Index
         Case 0: Call extract
         Case 1: Call AddNewCode
-        Case 2: Call Comment
-        Case 3: Call Comment(False)
+        Case 2: Call comment
+        Case 3: Call comment(False)
         Case 4: Clipboard.Clear: Clipboard.SetText Text2
         Case 5: Text2 = Empty
     End Select
@@ -238,7 +238,7 @@ Private Sub extract()
     Text3 = tmp
 End Sub
 
-Private Sub Comment(Optional out As Boolean = True)
+Private Sub comment(Optional out As Boolean = True)
     'basic outline of sub from Palidan on pscode
     Dim StartLine As Long, StartColumn As Long, EndLine As Long, EndColumn As Long
     VBInstance.ActiveCodePane.GetSelection StartLine, StartColumn, EndLine, EndColumn

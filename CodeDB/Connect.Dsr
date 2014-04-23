@@ -1,14 +1,14 @@
 VERSION 5.00
 Begin {AC0714F6-3D04-11D1-AE7D-00A0C90F26F4} Connect 
-   ClientHeight    =   9945
+   ClientHeight    =   11130
    ClientLeft      =   1740
    ClientTop       =   1545
-   ClientWidth     =   6585
-   _ExtentX        =   11615
-   _ExtentY        =   17542
+   ClientWidth     =   18450
+   _ExtentX        =   32544
+   _ExtentY        =   19632
    _Version        =   393216
-   Description     =   "Add-In Project Template"
-   DisplayName     =   "My Add-In"
+   Description     =   "Misc Code Tools"
+   DisplayName     =   "CodeDB"
    AppName         =   "Visual Basic"
    AppVer          =   "Visual Basic 98 (ver 6.0)"
    LoadName        =   "Command Line / Startup"
