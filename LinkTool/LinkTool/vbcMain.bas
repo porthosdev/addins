@@ -211,15 +211,14 @@ Sub Main()
        If Len(cmdFile) > 0 And Len(vbCommand) > 0 Then DebugMode = True
        
    ElseIf Len(Command) > 0 Then
-       
+        
+        writeFile App.path & "\lastLink.txt", Command
         cmdFile = LoadCmdFile() 'this also loads some globals
         
         If Len(cmdFile) > 0 Then
              SaveSetting "vbLinkTool", "settings", "lastCmdFile", cmdFile
              SaveSetting "vbLinkTool", "settings", "lastCmdProj", EXENAME
         End If
-
-        writeFile App.path & "\lastLink.txt", Command
               
    End If
    

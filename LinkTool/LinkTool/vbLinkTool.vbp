@@ -40,3 +40,6 @@ MaxNumberOfThreads=1
 
 [MS Transaction Server]
 AutoRefresh=1
+
+[fastBuild]
+fullPath=D:\_code\vb6_addins\LinkTool\LinkTool\Link.exe

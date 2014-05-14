@@ -220,6 +220,7 @@ End Sub
 
 Private Sub FileEvents_DoGetNewFileName(ByVal VBProject As VBIDE.VBProject, ByVal FileType As VBIDE.vbext_FileType, NewName As String, ByVal OldName As String, CancelDefault As Boolean)
     Dim fastBuildPath As String
+    Dim pf As String
     
     If FileType <> vbext_ft_Exe Then
         'MsgBox "Filetype: " & FileType
@@ -237,10 +238,17 @@ Private Sub FileEvents_DoGetNewFileName(ByVal VBProject As VBIDE.VBProject, ByVa
         Exit Sub
     End If
     
-    'MsgBox "overriding path!"
-    NewName = fastBuildPath
-    OldName = fastBuildPath
-    CancelDefault = True
+    pf = GetParentFolder(fastBuildPath)
+    
+    If FolderExists(pf) Then
+        'MsgBox "overriding path! " & NewName & " old: " & OldName
+        NewName = fastBuildPath
+        OldName = fastBuildPath
+        CancelDefault = True
+    Else
+        'msgbox "path is out of date project must have moved..resetting.."
+        VBInstance.ActiveVBProject.WriteProperty "fastBuild", "fullPath", ""
+    End If
  
 End Sub
 
