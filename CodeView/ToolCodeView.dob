@@ -1,0 +1,243 @@
+VERSION 5.00
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MsComCtl.ocx"
+Begin VB.UserDocument ToolCodeView 
+   ClientHeight    =   1995
+   ClientLeft      =   0
+   ClientTop       =   0
+   ClientWidth     =   1995
+   HScrollSmallChange=   225
+   ScaleHeight     =   1995
+   ScaleWidth      =   1995
+   VScrollSmallChange=   225
+   Begin VB.Timer Timer 
+      Interval        =   5000
+      Left            =   840
+      Top             =   1440
+   End
+   Begin MSComctlLib.ImageList Babel 
+      Left            =   180
+      Top             =   1320
+      _ExtentX        =   1005
+      _ExtentY        =   1005
+      BackColor       =   -2147483643
+      ImageWidth      =   16
+      ImageHeight     =   16
+      MaskColor       =   12632256
+      _Version        =   393216
+      BeginProperty Images {2C247F25-8591-11D1-B16A-00C0F0283628} 
+         NumListImages   =   16
+         BeginProperty ListImage1 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":0000
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage2 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":039A
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage3 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":0734
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage4 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":0ACE
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage5 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":0E68
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage6 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":1202
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage7 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":159C
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage8 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":1936
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage9 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":1CD0
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage10 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":206A
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage11 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":2404
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage12 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":299E
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage13 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":2D38
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage14 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":30D2
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage15 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":366C
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage16 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "ToolCodeView.dox":3A06
+            Key             =   ""
+         EndProperty
+      EndProperty
+   End
+   Begin MSComctlLib.TreeView CodeView 
+      Height          =   2000
+      Left            =   0
+      TabIndex        =   0
+      Top             =   0
+      Width           =   2000
+      _ExtentX        =   3519
+      _ExtentY        =   3519
+      _Version        =   393217
+      HideSelection   =   0   'False
+      Indentation     =   0
+      LabelEdit       =   1
+      LineStyle       =   1
+      Sorted          =   -1  'True
+      Style           =   7
+      ImageList       =   "Babel"
+      Appearance      =   1
+   End
+End
+Attribute VB_Name = "ToolCodeView"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = True
+Option Explicit
+
+Public VBInstance As VBIDE.VBE
+Public Connect As Connect
+Public ActiveCodeModule As CodeModule
+Private PrevLineCount As Long
+Private Line As Long
+Private Nodes(5) As Node
+
+Private Sub CodeView_DblClick()
+    If ActiveCodeModule Is Nothing Then Exit Sub
+    If Not CodeView.SelectedItem Is Nothing Then
+        ActiveCodeModule.Parent.Activate
+        ActiveCodeModule.CodePane.SetSelection Line, 1, Line, 1
+        ActiveCodeModule.CodePane.Window.SetFocus
+    End If
+End Sub
+
+Private Sub CodeView_NodeClick(ByVal Node As MSComctlLib.Node)
+    Dim value As String
+
+    If ActiveCodeModule Is Nothing Then Exit Sub
+    value = Node.Key
+    If Len(value) < 4 Then Exit Sub
+    Line = Mid(value, 4, Len(value) - 4)
+    ActiveCodeModule.CodePane.TopLine = Line
+    Line = Line + 1
+End Sub
+
+Sub InitCodeView()
+    Const hash As String = "#"
+    Dim n As Node
+
+    Line = 1
+    CodeView.Nodes.Clear
+    Set n = CodeView.Nodes.Add(, , "cv", "CodeView", 16)
+    n.Bold = True
+    n.Expanded = True
+    Set Nodes(vbext_mt_Const) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Const & hash, "Constants", vbext_mt_Const)
+    Set Nodes(vbext_mt_Variable) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Variable & hash, "Variables", vbext_mt_Variable)
+    Set Nodes(vbext_mt_Property) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Property & hash, "Properties", vbext_mt_Property)
+    Set Nodes(vbext_mt_Event) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Event & hash, "Events", vbext_mt_Event)
+    Set Nodes(vbext_mt_Method) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Method & hash, "Functions", vbext_mt_Method)
+    Nodes(vbext_mt_Event).Expanded = True
+    Nodes(vbext_mt_Method).Expanded = True
+End Sub
+
+Sub ClearCodeView()
+    Freeze CodeView.hwnd
+    ClearChildNodes CodeView, vbNullString, Nodes(vbext_mt_Const)
+    ClearChildNodes CodeView, vbNullString, Nodes(vbext_mt_Variable)
+    ClearChildNodes CodeView, vbNullString, Nodes(vbext_mt_Event)
+    ClearChildNodes CodeView, vbNullString, Nodes(vbext_mt_Property)
+    ClearChildNodes CodeView, vbNullString, Nodes(vbext_mt_Method)
+    Unfreeze CodeView.hwnd
+End Sub
+
+Sub Reload(Optional NewVBComponent As VBComponent)
+    Const hash As String = "#"
+    Dim member As Object
+    Dim n As Node
+    Dim i As Long
+    Dim pos As Long
+    Dim loc As Long
+    Dim mType As Long
+
+    If Not NewVBComponent Is Nothing Then
+        If Not NewVBComponent.CodeModule Is Nothing Then
+            Set ActiveCodeModule = NewVBComponent.CodeModule
+        End If
+    End If
+    If ActiveCodeModule Is Nothing Then Exit Sub
+    ClearCodeView
+    On Error Resume Next
+    Freeze CodeView.hwnd
+    For Each member In ActiveCodeModule.Members
+        i = 0
+        If member.Scope = vbext_Private Then
+            i = 5
+        ElseIf member.Scope = vbext_Friend Then
+            i = 10
+        End If
+        mType = member.Type
+        If mType = vbext_mt_Method Then
+            pos = InStr(member.Name, "_")
+            If pos > 3 Then
+                mType = vbext_mt_Event
+            End If
+        End If
+        loc = member.CodeLocation
+        Select Case mType
+            Case vbext_mt_Method, vbext_mt_Event
+                loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Proc)
+            Case vbext_mt_Property
+                loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Get)
+                If loc = 0 Then loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Let)
+                If loc = 0 Then loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Set)
+        End Select
+        CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + i
+    Next
+    CodeView.Nodes("cv").Text = ActiveCodeModule.Parent.Name
+    Nodes(vbext_mt_Const).Sorted = True
+    Nodes(vbext_mt_Variable).Sorted = True
+    Nodes(vbext_mt_Property).Sorted = True
+    Nodes(vbext_mt_Method).Sorted = True
+    Nodes(vbext_mt_Event).Sorted = True
+    Unfreeze CodeView.hwnd
+End Sub
+
+Private Sub Timer_Timer()
+    If ActiveCodeModule Is Nothing Then Exit Sub
+    If PrevLineCount <> ActiveCodeModule.CountOfLines Then
+        Reload
+        PrevLineCount = ActiveCodeModule.CountOfLines
+    End If
+End Sub
+
+Private Sub UserDocument_Resize()
+    CodeView.Width = Width
+    CodeView.Height = Height
+End Sub
+
+Private Sub UserDocument_Show()
+    InitCodeView
+End Sub
