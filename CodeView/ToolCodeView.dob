@@ -23,21 +23,21 @@ Begin VB.UserDocument ToolCodeView
       Left            =   45
       TabIndex        =   1
       Top             =   2070
-      Width           =   2310
+      Width           =   2085
       Begin VB.TextBox txtFilter 
          Height          =   285
-         Left            =   630
+         Left            =   450
          TabIndex        =   2
          Top             =   0
          Width           =   1500
       End
-      Begin VB.Label Label1 
-         Caption         =   "Search"
+      Begin VB.Label lblFilter 
+         Caption         =   "Filter:"
          Height          =   240
          Left            =   0
          TabIndex        =   3
          Top             =   45
-         Width           =   735
+         Width           =   420
       End
    End
    Begin VB.Timer Timer 
@@ -257,7 +257,7 @@ Sub Reload(Optional NewVBComponent As VBComponent)
     
     curProj = VBInstance.ActiveVBProject.Name
     If curProj <> ProjectName Then
-        If Len(ProjectName) > 0 Then
+        If Len(ProjectName) > 0 Then 'project name has changed..
             SaveMySetting ProjectName, Trim(txtFilter.Text)
             DBG "Saving filter for " & ProjectName
         End If
@@ -345,6 +345,10 @@ Sub Reload(Optional NewVBComponent As VBComponent)
     
 End Sub
 
+Private Sub lblFilter_Click()
+    txtFilter.Text = ""
+End Sub
+
 Private Sub Timer_Timer()
     'reloading constantly while coding has side effects
     'reload function will exit with no changes if module has not changed, and if filter has not changed
@@ -352,7 +356,6 @@ Private Sub Timer_Timer()
 End Sub
 
 Private Sub txtFilter_Change()
-    SaveMySetting ProjectName, Trim(txtFilter.Text)
     filterChanged = True
     Reload
 End Sub
