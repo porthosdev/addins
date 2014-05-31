@@ -9,6 +9,14 @@ Begin VB.UserDocument ToolCodeView
    ScaleHeight     =   3750
    ScaleWidth      =   4305
    VScrollSmallChange=   225
+   Begin VB.ListBox lstDbg 
+      Height          =   840
+      Left            =   2250
+      TabIndex        =   4
+      Top             =   990
+      Visible         =   0   'False
+      Width           =   1680
+   End
    Begin VB.Frame fraFilter 
       BorderStyle     =   0  'None
       Height          =   375
@@ -141,15 +149,26 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit
 
-'todo: make sure timer and project explorer node clicks exit if activecodemodule has not changed
-' but what about source updates?
+'todo: save expanded states from last run?
+'      if filter active auto expand parent nodes if has results?
 
 Public VBInstance As VBIDE.VBE
 Public Connect As Connect
+
 Public ActiveCodeModule As CodeModule
+Public CurMod As CodeModule
+
+Private filterChanged As Boolean
 Private PrevLineCount As Long
 Private Line As Long
 Private Nodes(5) As Node
+Private initilized As Boolean
+
+Const DEBUGMODE = False
+
+Public Sub DBG(msg As String)
+    If DEBUGMODE Then lstDbg.AddItem msg & " " & Format(Now, "h:m:ss")
+End Sub
 
 Private Sub CodeView_DblClick()
 
@@ -178,6 +197,10 @@ Private Sub CodeView_NodeClick(ByVal Node As MSComctlLib.Node)
     
 End Sub
 
+
+'this has to be called from reload and not a form_show
+'on startup reload was being called first, then UserDocument_Show was calling InitCodeView which was blanking out
+'the initial load leading to a confusing non-display _sometimes_
 Sub InitCodeView()
     On Error GoTo hell
     
@@ -185,6 +208,7 @@ Sub InitCodeView()
     Dim n As Node
 
     Line = 1
+    initilized = True
     CodeView.Nodes.Clear
     Set n = CodeView.Nodes.Add(, , "cv", "CodeView", 16)
     
@@ -197,7 +221,7 @@ Sub InitCodeView()
     Set Nodes(vbext_mt_Event) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Event & hash, "Events", vbext_mt_Event)
     Set Nodes(vbext_mt_Method) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Method & hash, "Functions", vbext_mt_Method)
     
-    Nodes(vbext_mt_Event).Expanded = True
+    Nodes(vbext_mt_Event).Expanded = False 'to many
     Nodes(vbext_mt_Method).Expanded = True
     
     Exit Sub
@@ -206,6 +230,7 @@ hell:
 End Sub
 
 Sub ClearCodeView()
+    On Error Resume Next
     Freeze CodeView.hwnd
     ClearChildNodes CodeView, vbNullString, Nodes(vbext_mt_Const)
     ClearChildNodes CodeView, vbNullString, Nodes(vbext_mt_Variable)
@@ -216,6 +241,7 @@ Sub ClearCodeView()
 End Sub
 
 Sub Reload(Optional NewVBComponent As VBComponent)
+
     Const hash As String = "#"
     Dim member As Object
     Dim n As Node
@@ -226,13 +252,36 @@ Sub Reload(Optional NewVBComponent As VBComponent)
     
     On Error Resume Next
     
+    If Not initilized Then InitCodeView
+    
     If Not NewVBComponent Is Nothing Then
         If Not NewVBComponent.CodeModule Is Nothing Then
-            Set ActiveCodeModule = NewVBComponent.CodeModule
+            If ObjPtr(CurMod) <> ObjPtr(ActiveCodeModule) Then
+                Set ActiveCodeModule = NewVBComponent.CodeModule
+                DBG "New Module: " & NewVBComponent.Name
+            End If
         End If
     End If
     
-    If ActiveCodeModule Is Nothing Then Exit Sub
+    If ActiveCodeModule Is Nothing Then
+        DBG "ActiveMod nothing"
+        Exit Sub
+    End If
+    
+    If ObjPtr(CurMod) = ObjPtr(ActiveCodeModule) And Not filterChanged Then
+        DBG "No change"
+        Exit Sub
+    End If
+    
+    DBG "Loading: " & ActiveCodeModule.Parent.Name
+    
+    If ActiveCodeModule.Members.Count = 0 Then
+        DBG "Members.count = 0"
+        Exit Sub
+    End If
+    
+    Set CurMod = ActiveCodeModule
+    filterChanged = False
     ClearCodeView
     
     Freeze CodeView.hwnd
@@ -285,28 +334,37 @@ Sub Reload(Optional NewVBComponent As VBComponent)
 End Sub
 
 Private Sub Timer_Timer()
-    If ActiveCodeModule Is Nothing Then Exit Sub
-    If PrevLineCount <> ActiveCodeModule.CountOfLines Then
-        Reload
-        PrevLineCount = ActiveCodeModule.CountOfLines
-    End If
+    'reloading constantly while coding has side effects
+    'reload function will exit with no changes if module has not changed, and if filter has not changed
+    Reload
 End Sub
 
 Private Sub txtFilter_Change()
+    filterChanged = True
     Reload
 End Sub
 
 Private Sub UserDocument_Resize()
     On Error Resume Next
+    
     CodeView.Width = UserDocument.ScaleWidth - 50
     CodeView.Height = UserDocument.ScaleHeight - fraFilter.Height - 50
     fraFilter.Top = UserDocument.ScaleHeight - fraFilter.Height - 25
     fraFilter.Width = CodeView.Width
     txtFilter.Width = fraFilter.Width - txtFilter.Left - 25
+    
+    If DEBUGMODE Then
+        CodeView.Height = (CodeView.Height - 50) / 2
+        lstDbg.Height = CodeView.Height
+        lstDbg.Top = CodeView.Top + CodeView.Height + 25
+        lstDbg.Width = CodeView.Width
+    End If
+    
 End Sub
 
 Private Sub UserDocument_Show()
+    lstDbg.Visible = DEBUGMODE
+    lstDbg.Left = CodeView.Left
     UserDocument.MinWidth = 100  'we dont want scroll bars to auto show..
     UserDocument.MinHeight = 100
-    InitCodeView
 End Sub

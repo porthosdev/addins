@@ -1,11 +1,11 @@
 VERSION 5.00
 Begin {AC0714F6-3D04-11D1-AE7D-00A0C90F26F4} Connect 
-   ClientHeight    =   10830
+   ClientHeight    =   10605
    ClientLeft      =   1740
    ClientTop       =   1545
-   ClientWidth     =   18045
-   _ExtentX        =   31829
-   _ExtentY        =   19103
+   ClientWidth     =   23370
+   _ExtentX        =   41222
+   _ExtentY        =   18706
    _Version        =   393216
    Description     =   $"Connect.dsx":0000
    DisplayName     =   "CodeView"
@@ -32,6 +32,7 @@ Public WithEvents ComponentHandler As VBComponentsEvents
 Attribute ComponentHandler.VB_VarHelpID = -1
 Public WithEvents ProjectHandler As VBProjectsEvents
 Attribute ProjectHandler.VB_VarHelpID = -1
+
 Dim mToolCodeView As ToolCodeView
 Dim wToolCodeView As VBIDE.Window
 Const GuidCodeView As String = "05745B8A-E341-11E3-9712-70581D5D46B0"
@@ -56,6 +57,17 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
 5    Set ProjectHandler = VBInstance.Events.VBProjectsEvents()
 6    Set wToolCodeView = VBInstance.Windows.CreateToolWindow(AddInInst, "CodeView.ToolCodeView", "CodeView", GuidCodeView, mToolCodeView)
 7    Me.Show
+
+'     'make sure we run on load without waiting for user to click a node manually, or timer to hit..
+'     If Not VBInstance.ActiveCodePane Is Nothing Then
+'        If Not VBInstance.ActiveCodePane.CodeModule Is Nothing Then
+'            Set mToolCodeView.ActiveCodeModule = VBInstance.ActiveCodePane.CodeModule
+'            If FormDisplayed Then
+'                mToolCodeView.Reload
+'            End If
+'        End If
+'     End If
+     
     Exit Sub
     
 error_handler:
@@ -76,8 +88,6 @@ Private Sub IDTExtensibility_OnStartupComplete(custom() As Variant)
 End Sub
 
 Private Sub ComponentHandler_ItemSelected(ByVal VBComponent As VBIDE.VBComponent)
-    Const hash As String = "#"
-    Dim member As Object
 
     If Not VBComponent.CodeModule Is Nothing Then
         Set mToolCodeView.ActiveCodeModule = VBComponent.CodeModule
