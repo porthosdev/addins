@@ -15,6 +15,9 @@ Sub Unfreeze(hwnd As Long)
 End Sub
 
 Sub ClearChildNodes(Tree As TreeView, NodeName As String, Optional NodeObject As Node)
+    
+    On Error Resume Next 'GoTo hell
+
     Dim n As Node
     
     If Not NodeObject Is Nothing Then
@@ -22,13 +25,21 @@ Sub ClearChildNodes(Tree As TreeView, NodeName As String, Optional NodeObject As
     Else
         Set n = Tree.Nodes(NodeName)
     End If
+    
     If n Is Nothing Then Exit Sub
+    
     While n.Children > 0
         If n.Child.Children > 0 Then
             ClearChildNodes Tree, n.Child
         End If
         Tree.Nodes.Remove n.Child.Index
     Wend
+    
+        Exit Sub
+hell:
+    'getting invalid node key error sometimes..
+    'MsgBox "Err in ClearChildNodes: " & Err.Description
+
 End Sub
 
 

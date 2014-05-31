@@ -85,6 +85,7 @@ Private Sub ComponentHandler_ItemSelected(ByVal VBComponent As VBIDE.VBComponent
             mToolCodeView.Reload
         End If
     End If
+    
 End Sub
 
 Private Sub MenuHandler_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
@@ -98,12 +99,15 @@ Function AddToAddInCommandBar(sCaption As String) As Office.CommandBarControl
   
     On Error GoTo AddToAddInCommandBarErr
     Set cbMenu = VBInstance.CommandBars("Add-Ins")
+    
     If cbMenu Is Nothing Then
         Exit Function
     End If
+    
     Set cbMenuCommandBar = cbMenu.Controls.Add(1)
     cbMenuCommandBar.Caption = sCaption
     Set AddToAddInCommandBar = cbMenuCommandBar
+    
     Exit Function
     
 AddToAddInCommandBarErr:

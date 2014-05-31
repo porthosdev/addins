@@ -1,14 +1,37 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MsComCtl.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Begin VB.UserDocument ToolCodeView 
-   ClientHeight    =   1995
+   ClientHeight    =   3750
    ClientLeft      =   0
    ClientTop       =   0
-   ClientWidth     =   1995
+   ClientWidth     =   4305
    HScrollSmallChange=   225
-   ScaleHeight     =   1995
-   ScaleWidth      =   1995
+   ScaleHeight     =   3750
+   ScaleWidth      =   4305
    VScrollSmallChange=   225
+   Begin VB.Frame fraFilter 
+      BorderStyle     =   0  'None
+      Height          =   375
+      Left            =   45
+      TabIndex        =   1
+      Top             =   2070
+      Width           =   2310
+      Begin VB.TextBox txtFilter 
+         Height          =   285
+         Left            =   630
+         TabIndex        =   2
+         Top             =   0
+         Width           =   1500
+      End
+      Begin VB.Label Label1 
+         Caption         =   "Search"
+         Height          =   240
+         Left            =   0
+         TabIndex        =   3
+         Top             =   45
+         Width           =   735
+      End
+   End
    Begin VB.Timer Timer 
       Interval        =   5000
       Left            =   840
@@ -118,6 +141,9 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit
 
+'todo: make sure timer and project explorer node clicks exit if activecodemodule has not changed
+' but what about source updates?
+
 Public VBInstance As VBIDE.VBE
 Public Connect As Connect
 Public ActiveCodeModule As CodeModule
@@ -126,41 +152,57 @@ Private Line As Long
 Private Nodes(5) As Node
 
 Private Sub CodeView_DblClick()
+
     If ActiveCodeModule Is Nothing Then Exit Sub
+    
     If Not CodeView.SelectedItem Is Nothing Then
         ActiveCodeModule.Parent.Activate
         ActiveCodeModule.CodePane.SetSelection Line, 1, Line, 1
         ActiveCodeModule.CodePane.Window.SetFocus
     End If
+    
 End Sub
 
 Private Sub CodeView_NodeClick(ByVal Node As MSComctlLib.Node)
     Dim value As String
 
     If ActiveCodeModule Is Nothing Then Exit Sub
+    
     value = Node.Key
+    
     If Len(value) < 4 Then Exit Sub
+    
     Line = Mid(value, 4, Len(value) - 4)
     ActiveCodeModule.CodePane.TopLine = Line
     Line = Line + 1
+    
 End Sub
 
 Sub InitCodeView()
+    On Error GoTo hell
+    
     Const hash As String = "#"
     Dim n As Node
 
     Line = 1
     CodeView.Nodes.Clear
     Set n = CodeView.Nodes.Add(, , "cv", "CodeView", 16)
+    
     n.Bold = True
     n.Expanded = True
+    
     Set Nodes(vbext_mt_Const) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Const & hash, "Constants", vbext_mt_Const)
     Set Nodes(vbext_mt_Variable) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Variable & hash, "Variables", vbext_mt_Variable)
     Set Nodes(vbext_mt_Property) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Property & hash, "Properties", vbext_mt_Property)
     Set Nodes(vbext_mt_Event) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Event & hash, "Events", vbext_mt_Event)
     Set Nodes(vbext_mt_Method) = CodeView.Nodes.Add("cv", tvwChild, vbext_mt_Method & hash, "Functions", vbext_mt_Method)
+    
     Nodes(vbext_mt_Event).Expanded = True
     Nodes(vbext_mt_Method).Expanded = True
+    
+    Exit Sub
+hell:
+    MsgBox "Err in InitCodeView: " & Err.Description
 End Sub
 
 Sub ClearCodeView()
@@ -181,23 +223,28 @@ Sub Reload(Optional NewVBComponent As VBComponent)
     Dim pos As Long
     Dim loc As Long
     Dim mType As Long
-
+    
+    On Error Resume Next
+    
     If Not NewVBComponent Is Nothing Then
         If Not NewVBComponent.CodeModule Is Nothing Then
             Set ActiveCodeModule = NewVBComponent.CodeModule
         End If
     End If
+    
     If ActiveCodeModule Is Nothing Then Exit Sub
     ClearCodeView
-    On Error Resume Next
+    
     Freeze CodeView.hwnd
     For Each member In ActiveCodeModule.Members
         i = 0
+        
         If member.Scope = vbext_Private Then
             i = 5
         ElseIf member.Scope = vbext_Friend Then
             i = 10
         End If
+        
         mType = member.Type
         If mType = vbext_mt_Method Then
             pos = InStr(member.Name, "_")
@@ -205,7 +252,9 @@ Sub Reload(Optional NewVBComponent As VBComponent)
                 mType = vbext_mt_Event
             End If
         End If
+        
         loc = member.CodeLocation
+        
         Select Case mType
             Case vbext_mt_Method, vbext_mt_Event
                 loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Proc)
@@ -214,8 +263,17 @@ Sub Reload(Optional NewVBComponent As VBComponent)
                 If loc = 0 Then loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Let)
                 If loc = 0 Then loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Set)
         End Select
-        CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + i
+        
+        If Len(txtFilter) > 0 Then
+            If InStr(1, member.Name, txtFilter, vbTextCompare) > 0 Then
+                CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + i
+            End If
+        Else
+            CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + i
+        End If
+                
     Next
+    
     CodeView.Nodes("cv").Text = ActiveCodeModule.Parent.Name
     Nodes(vbext_mt_Const).Sorted = True
     Nodes(vbext_mt_Variable).Sorted = True
@@ -223,6 +281,7 @@ Sub Reload(Optional NewVBComponent As VBComponent)
     Nodes(vbext_mt_Method).Sorted = True
     Nodes(vbext_mt_Event).Sorted = True
     Unfreeze CodeView.hwnd
+    
 End Sub
 
 Private Sub Timer_Timer()
@@ -233,11 +292,21 @@ Private Sub Timer_Timer()
     End If
 End Sub
 
+Private Sub txtFilter_Change()
+    Reload
+End Sub
+
 Private Sub UserDocument_Resize()
-    CodeView.Width = Width
-    CodeView.Height = Height
+    On Error Resume Next
+    CodeView.Width = UserDocument.ScaleWidth - 50
+    CodeView.Height = UserDocument.ScaleHeight - fraFilter.Height - 50
+    fraFilter.Top = UserDocument.ScaleHeight - fraFilter.Height - 25
+    fraFilter.Width = CodeView.Width
+    txtFilter.Width = fraFilter.Width - txtFilter.Left - 25
 End Sub
 
 Private Sub UserDocument_Show()
+    UserDocument.MinWidth = 100  'we dont want scroll bars to auto show..
+    UserDocument.MinHeight = 100
     InitCodeView
 End Sub
