@@ -56,20 +56,10 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
 4    Set ComponentHandler = VBInstance.Events.VBComponentsEvents(Nothing)
 5    Set ProjectHandler = VBInstance.Events.VBProjectsEvents()
 6    Set wToolCodeView = VBInstance.Windows.CreateToolWindow(AddInInst, "CodeView.ToolCodeView", "CodeView", GuidCodeView, mToolCodeView)
-7    Me.Show
-
-'     'make sure we run on load without waiting for user to click a node manually, or timer to hit..
-'     If Not VBInstance.ActiveCodePane Is Nothing Then
-'        If Not VBInstance.ActiveCodePane.CodeModule Is Nothing Then
-'            Set mToolCodeView.ActiveCodeModule = VBInstance.ActiveCodePane.CodeModule
-'            If FormDisplayed Then
-'                mToolCodeView.Reload
-'            End If
-'        End If
-'     End If
+7    Set mToolCodeView.VBInstance = Application
+8    Me.Show
      
     Exit Sub
-    
 error_handler:
     MsgBox "AddinInstance_OnConnection: Line: " & Erl() & " Desc: " & Err.Description
 End Sub
@@ -81,6 +71,7 @@ Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjec
     FormDisplayed = False
     Unload mToolCodeView
     Set mToolCodeView = Nothing
+    
 End Sub
 
 Private Sub IDTExtensibility_OnStartupComplete(custom() As Variant)
@@ -88,7 +79,7 @@ Private Sub IDTExtensibility_OnStartupComplete(custom() As Variant)
 End Sub
 
 Private Sub ComponentHandler_ItemSelected(ByVal VBComponent As VBIDE.VBComponent)
-
+    
     If Not VBComponent.CodeModule Is Nothing Then
         Set mToolCodeView.ActiveCodeModule = VBComponent.CodeModule
         If FormDisplayed Then
@@ -125,4 +116,5 @@ End Function
 
 Private Sub ProjectHandler_ItemRemoved(ByVal VBProject As VBIDE.VBProject)
     Set mToolCodeView.ActiveCodeModule = Nothing
+    Set mToolCodeView.CurMod = Nothing
 End Sub

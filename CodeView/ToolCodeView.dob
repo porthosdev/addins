@@ -153,10 +153,10 @@ Option Explicit
 '      if filter active auto expand parent nodes if has results?
 
 Public VBInstance As VBIDE.VBE
-Public Connect As Connect
 
 Public ActiveCodeModule As CodeModule
 Public CurMod As CodeModule
+Public ProjectName As String
 
 Private filterChanged As Boolean
 Private PrevLineCount As Long
@@ -187,7 +187,7 @@ Private Sub CodeView_NodeClick(ByVal Node As MSComctlLib.Node)
 
     If ActiveCodeModule Is Nothing Then Exit Sub
     
-    value = Node.Key
+    value = Node.key
     
     If Len(value) < 4 Then Exit Sub
     
@@ -249,10 +249,22 @@ Sub Reload(Optional NewVBComponent As VBComponent)
     Dim pos As Long
     Dim loc As Long
     Dim mType As Long
+    Dim curProj As String
     
     On Error Resume Next
     
     If Not initilized Then InitCodeView
+    
+    curProj = VBInstance.ActiveVBProject.Name
+    If curProj <> ProjectName Then
+        If Len(ProjectName) > 0 Then
+            SaveMySetting ProjectName, Trim(txtFilter.Text)
+            DBG "Saving filter for " & ProjectName
+        End If
+        ProjectName = curProj
+        txtFilter.Text = Trim(GetMySetting(ProjectName, ""))
+        DBG "Loading filter for " & ProjectName
+    End If
     
     If Not NewVBComponent Is Nothing Then
         If Not NewVBComponent.CodeModule Is Nothing Then
@@ -340,6 +352,7 @@ Private Sub Timer_Timer()
 End Sub
 
 Private Sub txtFilter_Change()
+    SaveMySetting ProjectName, Trim(txtFilter.Text)
     filterChanged = True
     Reload
 End Sub
@@ -367,4 +380,10 @@ Private Sub UserDocument_Show()
     lstDbg.Left = CodeView.Left
     UserDocument.MinWidth = 100  'we dont want scroll bars to auto show..
     UserDocument.MinHeight = 100
+End Sub
+
+Private Sub UserDocument_Terminate()
+    On Error Resume Next
+    SaveMySetting ProjectName, Trim(txtFilter.Text)
+    Set VBInstance = Nothing
 End Sub
