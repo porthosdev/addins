@@ -92,10 +92,7 @@ End Sub
 Private Sub ComponentHandler_ItemSelected(ByVal VBComponent As VBIDE.VBComponent)
     
     If Not VBComponent.CodeModule Is Nothing Then
-        Set mToolCodeView.ActiveCodeModule = VBComponent.CodeModule
-        If FormDisplayed Then
-            mToolCodeView.Reload
-        End If
+        mToolCodeView.Reload VBComponent.CodeModule
     End If
     
 End Sub

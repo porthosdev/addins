@@ -14,3 +14,4 @@ Attribute VB_Exposed = True
 Public proc As String
 Public text As String
 Public lineNo As Long
+Public ComponentName As String

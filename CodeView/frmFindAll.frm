@@ -10,6 +10,22 @@ Begin VB.Form frmFindAll
    ScaleHeight     =   3765
    ScaleWidth      =   11190
    StartUpPosition =   2  'CenterScreen
+   Begin VB.CheckBox chkMatchCase 
+      Caption         =   "Match Case"
+      Height          =   330
+      Left            =   9855
+      TabIndex        =   6
+      Top             =   90
+      Width           =   1275
+   End
+   Begin VB.CheckBox chkWholeWord 
+      Caption         =   "Whole Word"
+      Height          =   285
+      Left            =   8505
+      TabIndex        =   5
+      Top             =   90
+      Width           =   1230
+   End
    Begin MSComctlLib.ListView lvMod 
       Height          =   3210
       Left            =   45
@@ -30,7 +46,7 @@ Begin VB.Form frmFindAll
       Appearance      =   1
       BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
          Name            =   "Courier"
-         Size            =   12
+         Size            =   9.75
          Charset         =   0
          Weight          =   400
          Underline       =   0   'False
@@ -60,10 +76,10 @@ Begin VB.Form frmFindAll
          Strikethrough   =   0   'False
       EndProperty
       Height          =   330
-      Left            =   9585
+      Left            =   7155
       TabIndex        =   2
-      Top             =   90
-      Width           =   1455
+      Top             =   45
+      Width           =   1230
    End
    Begin VB.TextBox txtFind 
       BeginProperty Font 
@@ -79,7 +95,7 @@ Begin VB.Form frmFindAll
       Left            =   1080
       TabIndex        =   1
       Top             =   45
-      Width           =   8385
+      Width           =   6000
    End
    Begin MSComctlLib.ListView lv 
       Height          =   3210
@@ -101,7 +117,7 @@ Begin VB.Form frmFindAll
       Appearance      =   1
       BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
          Name            =   "Courier"
-         Size            =   12
+         Size            =   9.75
          Charset         =   0
          Weight          =   400
          Underline       =   0   'False
@@ -150,13 +166,19 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Private bCancel As Boolean
-
-'These routines are very simplified versions of code from CodeFixer addin
+'These routines are simplified versions of code from CodeFixer addin
 'by Roger Gilchrist <rojagilkrist@hotmail.com> Copyright 2003
 
 
+Private bCancel As Boolean
+Private Declare Sub SetWindowPos Lib "user32" (ByVal hwnd As Long, ByVal hWndInsertAfter As Long, ByVal x As Long, ByVal Y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long)
+Private Const HWND_TOPMOST = -1
 
+Sub SetWindowTopMost(f As Form)
+   SetWindowPos f.hwnd, HWND_TOPMOST, f.Left / 15, _
+        f.Top / 15, f.Width / 15, _
+        f.Height / 15, Empty
+End Sub
 
 Public Function GetActiveCodeModule() As CodeModule
   On Error Resume Next
@@ -302,7 +324,7 @@ Public Function GetProcLineNumber(cmpMod As CodeModule, CodeLineNo As Long) As S
 End Function
 
 
-Public Sub DoSearch(lv As ListView, strfind As String)
+Public Sub DoSearch(lv As ListView, strfind As String, Optional wholeWord As Boolean, Optional matchCase As Boolean)
 
   
     Dim PrevCurCodePane As Long
@@ -321,39 +343,40 @@ Public Sub DoSearch(lv As ListView, strfind As String)
     Dim ProcName        As String
     Dim li              As ListItem
     Dim CompMod         As CodeModule
-    Dim Comp            As VBComponent
+    Dim comp            As VBComponent
     Dim proj            As VBProject
     Dim modules As Long
     
     Dim parent As CModule
     Dim result As CResult
+    Dim hits As Long
     
-     ' On Error Resume Next
-      bCancel = False
-      lv.ListItems.Clear
-      lvMod.ListItems.Clear
+     On Error Resume Next
+     bCancel = False
+     lv.ListItems.Clear
+     lvMod.ListItems.Clear
       
       For Each proj In g_VBInstance.VBProjects
                   
-          For Each Comp In proj.VBComponents
+          For Each comp In proj.VBComponents
                 
                 Set parent = New CModule
-                parent.module = Comp.Name
+                parent.module = comp.Name & "." & comp.Type
                 parent.proj = proj.Name
                 
                 modules = modules + 1
-                Me.Caption = "Searching Component " & Comp.Name
+                Me.Caption = "Searching Component " & comp.Name
                 
-                If LenB(Comp.Name) > 0 Then
+                If LenB(comp.Name) > 0 Then
                 
-                    Set CompMod = Comp.CodeModule
+                    Set CompMod = comp.CodeModule
     
                     StartLine = 1 'initialize search range
                     startCol = 1
                     EndLine = -1
                     endCol = -1
                     
-                    Do While CompMod.Find(strfind, StartLine, startCol, EndLine, endCol, False, False, False)
+                    Do While CompMod.Find(strfind, StartLine, startCol, EndLine, endCol, wholeWord, matchCase, False)
                         
                         DoEvents
                         code = CompMod.Lines(StartLine, 1)
@@ -364,7 +387,9 @@ Public Sub DoSearch(lv As ListView, strfind As String)
                             result.proc = GetProcName(CompMod, StartLine)
                             result.lineNo = StartLine
                             result.text = Trim$(code)
+                            result.ComponentName = comp.Name
                             parent.hits.Add result
+                            hits = hits + 1
                             code = Empty
                         End If
     
@@ -387,17 +412,22 @@ Public Sub DoSearch(lv As ListView, strfind As String)
                     Set li.Tag = parent
               End If
               
-        Next Comp
+        Next comp
             
         If bCancel Then Exit For
     Next proj
       
-    Me.Caption = "Searched " & modules & " Modules found " & lv.ListItems.Count & " results"
+    Me.Caption = "Searched " & modules & " Modules found " & hits & " results"
     cmdSearch.Caption = "Search"
- 
+    
+    lvMod_ItemClick lvMod.ListItems(1)
+    
 End Sub
  
 Private Sub cmdSearch_Click()
+
+    Dim wholeWord As Boolean
+    Dim matchCase As Boolean
     
     If cmdSearch.Caption = "Search" Then
         
@@ -405,10 +435,13 @@ Private Sub cmdSearch_Click()
             MsgBox "Enter a string to search for!"
             Exit Sub
         End If
-
+        
+        If chkMatchCase.value = 1 Then matchCase = True
+        If chkWholeWord.value = 1 Then wholeWord = True
+        
         bCancel = False
         cmdSearch.Caption = "Cancel"
-        DoSearch lv, txtFind
+        DoSearch lv, txtFind, wholeWord, matchCase
         
     Else
         bCancel = True
@@ -417,11 +450,53 @@ Private Sub cmdSearch_Click()
     
 End Sub
 
+Private Sub Form_Load()
+    FormPos Me, True
+    SetWindowTopMost Me
+End Sub
+
 Private Sub Form_Resize()
     On Error Resume Next
     lv.Width = Me.Width - lv.Left - 100
     lv.ColumnHeaders(3).Width = lv.Width - lv.ColumnHeaders(3).Left - 100
     lvMod.ColumnHeaders(2).Width = lvMod.Width - lvMod.ColumnHeaders(2).Left - 100
+    lv.Height = Me.Height - lv.Top - 100
+    lvMod.Height = lv.Height
+End Sub
+
+Private Sub Form_Unload(Cancel As Integer)
+    FormPos Me, True, True
+End Sub
+
+Private Sub Label1_Click()
+    txtFind.text = Empty
+End Sub
+
+Private Sub lv_ItemClick(ByVal Item As MSComctlLib.ListItem)
+    Dim r As CResult
+    Dim proj As VBProject
+    Dim cp As CodePane
+    Dim comp As VBComponent
+    
+    On Error GoTo hell
+    
+1    Set r = Item.Tag
+
+2    For Each proj In g_VBInstance.VBProjects
+3        For Each comp In proj.VBComponents
+4            If comp.Name = r.ComponentName Then
+5                comp.CodeModule.CodePane.Show
+6                comp.CodeModule.CodePane.TopLine = r.lineNo
+'7                comp.CodeModule.CodePane.SetSelection r.lineNo, InStr(1, r.text, txtFind, vbTextCompare), r.lineNo, Len(txtFind)
+                Exit Sub
+            End If
+        Next
+    Next
+    
+    Exit Sub
+hell:
+    MsgBox "Error in lv_ItemClick: " & Erl & " - " & Err.Description
+    
 End Sub
 
 Private Sub lvMod_ItemClick(ByVal Item As MSComctlLib.ListItem)
@@ -437,22 +512,35 @@ Private Sub lvMod_ItemClick(ByVal Item As MSComctlLib.ListItem)
         Set li = lv.ListItems.Add(, , r.lineNo)
         li.SubItems(1) = r.proc
         li.SubItems(2) = r.text
+        Set li.Tag = r
     Next
     
 End Sub
 
+Private Sub txtFind_KeyPress(KeyAscii As Integer)
+    If KeyAscii = 13 Then cmdSearch_Click
+End Sub
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+Sub FormPos(fform As Form, Optional andSize As Boolean = False, Optional save_mode As Boolean = False)
+    
+    On Error Resume Next
+    
+    Dim f, sz
+    f = Split(",Left,Top,Height,Width", ",")
+    
+    If fform.WindowState = vbMinimized Then Exit Sub
+    If andSize = False Then sz = 2 Else sz = 4
+    
+    For I = 1 To sz
+        If save_mode Then
+            ff = CallByName(fform, f(I), VbGet)
+            SaveSetting App.EXEName, fform.Name & ".FormPos", f(I), ff
+        Else
+            def = CallByName(fform, f(I), VbGet)
+            ff = GetSetting(App.EXEName, fform.Name & ".FormPos", f(I), def)
+            CallByName fform, f(I), VbLet, ff
+        End If
+    Next
+    
+End Sub
 

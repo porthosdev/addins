@@ -174,7 +174,7 @@ Private Sub CodeView_DblClick()
     If ActiveCodeModule Is Nothing Then Exit Sub
     
     If Not CodeView.SelectedItem Is Nothing Then
-        ActiveCodeModule.Parent.Activate
+        ActiveCodeModule.parent.Activate
         ActiveCodeModule.CodePane.SetSelection Line, 1, Line, 1
         ActiveCodeModule.CodePane.Window.SetFocus
     End If
@@ -239,7 +239,7 @@ Sub ClearCodeView()
     Unfreeze CodeView.hwnd
 End Sub
 
-Sub Reload(Optional NewVBComponent As VBComponent)
+Sub Reload(Optional NewModule As CodeModule)
 
     Const hash As String = "#"
     Dim member As Object
@@ -257,23 +257,23 @@ Sub Reload(Optional NewVBComponent As VBComponent)
     curProj = g_VBInstance.ActiveVBProject.Name
     If curProj <> ProjectName Then
         If Len(ProjectName) > 0 Then 'project name has changed..
-            SaveMySetting ProjectName, Trim(txtFilter.Text)
+            SaveMySetting ProjectName, Trim(txtFilter.text)
             DBG "Saving filter for " & ProjectName
         End If
         ProjectName = curProj
-        txtFilter.Text = Trim(GetMySetting(ProjectName, ""))
+        txtFilter.text = Trim(GetMySetting(ProjectName, ""))
         DBG "Loading filter for " & ProjectName
     End If
     
-    If Not NewVBComponent Is Nothing Then
-        If Not NewVBComponent.CodeModule Is Nothing Then
-            If ObjPtr(CurMod) <> ObjPtr(ActiveCodeModule) Then
-                Set ActiveCodeModule = NewVBComponent.CodeModule
-                DBG "New Module: " & NewVBComponent.Name
-            End If
+    If Not NewModule Is Nothing Then
+        If CurMod Is Nothing And ActiveCodeModule Is Nothing Then
+             Set ActiveCodeModule = NewModule
+        ElseIf ObjPtr(CurMod) <> ObjPtr(ActiveCodeModule) Then
+            Set ActiveCodeModule = NewModule
+            DBG "New Module"
         End If
     End If
-    
+   
     If ActiveCodeModule Is Nothing Then
         DBG "ActiveMod nothing"
         Exit Sub
@@ -284,7 +284,7 @@ Sub Reload(Optional NewVBComponent As VBComponent)
         Exit Sub
     End If
     
-    DBG "Loading: " & ActiveCodeModule.Parent.Name
+    DBG "Loading: " & ActiveCodeModule.parent.Name
     
     If ActiveCodeModule.Members.Count = 0 Then
         DBG "Members.count = 0"
@@ -334,7 +334,7 @@ Sub Reload(Optional NewVBComponent As VBComponent)
                 
     Next
     
-    CodeView.Nodes("cv").Text = ActiveCodeModule.Parent.Name
+    CodeView.Nodes("cv").text = ActiveCodeModule.parent.Name
     Nodes(vbext_mt_Const).Sorted = True
     Nodes(vbext_mt_Variable).Sorted = True
     Nodes(vbext_mt_Property).Sorted = True
@@ -345,7 +345,7 @@ Sub Reload(Optional NewVBComponent As VBComponent)
 End Sub
 
 Private Sub lblFilter_Click()
-    txtFilter.Text = ""
+    txtFilter.text = ""
 End Sub
 
 Private Sub Timer_Timer()
@@ -390,13 +390,16 @@ Private Sub UserDocument_Resize()
 End Sub
 
 Private Sub UserDocument_Show()
+    On Error Resume Next
     lstDbg.Visible = DEBUGMODE
     lstDbg.Left = CodeView.Left
     UserDocument.MinWidth = 100  'we dont want scroll bars to auto show..
     UserDocument.MinHeight = 100
+    If Not initilized Then InitCodeView
+    If ActiveCodeModule Is Nothing Then Reload g_VBInstance.ActiveCodePane.CodeModule
 End Sub
 
 Private Sub UserDocument_Terminate()
     On Error Resume Next
-    SaveMySetting ProjectName, Trim(txtFilter.Text)
+    SaveMySetting ProjectName, Trim(txtFilter.text)
 End Sub
