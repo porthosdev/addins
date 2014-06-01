@@ -1,11 +1,12 @@
 VERSION 5.00
 Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Begin VB.Form frmFindAll 
-   Caption         =   "Source Search"
+   Caption         =   "  Source Search"
    ClientHeight    =   3765
    ClientLeft      =   60
    ClientTop       =   345
    ClientWidth     =   11190
+   Icon            =   "frmFindAll.frx":0000
    LinkTopic       =   "Form1"
    ScaleHeight     =   3765
    ScaleWidth      =   11190
@@ -36,6 +37,8 @@ Begin VB.Form frmFindAll
       _ExtentY        =   5662
       View            =   3
       LabelEdit       =   1
+      SortOrder       =   -1  'True
+      Sorted          =   -1  'True
       LabelWrap       =   0   'False
       HideSelection   =   0   'False
       FullRowSelect   =   -1  'True
@@ -323,6 +326,22 @@ Public Function GetProcLineNumber(cmpMod As CodeModule, CodeLineNo As Long) As S
 
 End Function
 
+Private Function ModuleExt(Modtype As Long) As String
+  
+  Select Case Modtype
+        Case vbext_ct_StdModule:  ModuleExt = ".bas"  '1 standard module.
+        Case vbext_ct_ClassModule: ModuleExt = ".cls" '2 class module.
+        Case vbext_ct_MSForm: ModuleExt = ".frm"      '3 form.
+        Case vbext_ct_ResFile: ModuleExt = ".res"     '4 standard resource file.
+        Case vbext_ct_VBForm: ModuleExt = ".frm"      '5 Visual Basic form.
+        Case vbext_ct_VBMDIForm: ModuleExt = ".frm"   '6 The component is an MDI form.
+        Case vbext_ct_PropPage: ModuleExt = ".pag"    '7 property page.
+        Case vbext_ct_UserControl: ModuleExt = ".ctl" '8 user control.
+        Case vbext_ct_DocObject: ModuleExt = ".dob"    '9 RelatedDocument.
+        Case vbext_ct_ActiveXDesigner: ModuleExt = ".dsr" '11 ActiveX designer.
+  End Select
+  
+End Function
 
 Public Sub DoSearch(lv As ListView, strfind As String, Optional wholeWord As Boolean, Optional matchCase As Boolean)
 
@@ -361,7 +380,7 @@ Public Sub DoSearch(lv As ListView, strfind As String, Optional wholeWord As Boo
           For Each comp In proj.VBComponents
                 
                 Set parent = New CModule
-                parent.module = comp.Name & "." & comp.Type
+                parent.module = comp.Name & ModuleExt(comp.Type)
                 parent.proj = proj.Name
                 
                 modules = modules + 1
@@ -407,7 +426,7 @@ Public Sub DoSearch(lv As ListView, strfind As String, Optional wholeWord As Boo
               If bCancel Then Exit For
               
               If parent.hits.Count > 0 Then
-                    Set li = lvMod.ListItems.Add(, , parent.hits.Count)
+                    Set li = lvMod.ListItems.Add(, , IIf(parent.hits.Count < 10, " ", "") & parent.hits.Count)
                     li.SubItems(1) = parent.module 'if proj.count > 1 then prepend proj name..
                     Set li.Tag = parent
               End If
@@ -457,10 +476,10 @@ End Sub
 
 Private Sub Form_Resize()
     On Error Resume Next
-    lv.Width = Me.Width - lv.Left - 100
-    lv.ColumnHeaders(3).Width = lv.Width - lv.ColumnHeaders(3).Left - 100
-    lvMod.ColumnHeaders(2).Width = lvMod.Width - lvMod.ColumnHeaders(2).Left - 100
-    lv.Height = Me.Height - lv.Top - 100
+    lv.Width = Me.Width - lv.Left - 200
+    lv.ColumnHeaders(3).Width = lv.Width - lv.ColumnHeaders(3).Left - 200
+    lvMod.ColumnHeaders(2).Width = lvMod.Width - lvMod.ColumnHeaders(2).Left - 200
+    lv.Height = Me.Height - lv.Top - 200
     lvMod.Height = lv.Height
 End Sub
 
@@ -517,8 +536,11 @@ Private Sub lvMod_ItemClick(ByVal Item As MSComctlLib.ListItem)
     
 End Sub
 
-Private Sub txtFind_KeyPress(KeyAscii As Integer)
-    If KeyAscii = 13 Then cmdSearch_Click
+Private Sub txtFind_KeyPress(KeyCode As Integer)
+    If KeyCode = 13 Then
+        cmdSearch_Click
+        KeyCode = 0
+    End If
 End Sub
 
 Sub FormPos(fform As Form, Optional andSize As Boolean = False, Optional save_mode As Boolean = False)
