@@ -24,10 +24,14 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Public FormDisplayed As Boolean
-Public VBInstance As VBIDE.VBE
 Dim mcbMenuCommandBar As Office.CommandBarControl
 Public WithEvents MenuHandler As CommandBarEvents
 Attribute MenuHandler.VB_VarHelpID = -1
+
+Dim mcbMenuCommandBar2 As Office.CommandBarControl
+Public WithEvents MenuHandler2 As CommandBarEvents
+Attribute MenuHandler2.VB_VarHelpID = -1
+
 Public WithEvents ComponentHandler As VBComponentsEvents
 Attribute ComponentHandler.VB_VarHelpID = -1
 Public WithEvents ProjectHandler As VBProjectsEvents
@@ -50,13 +54,17 @@ End Sub
 Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal ConnectMode As AddInDesignerObjects.ext_ConnectMode, ByVal AddInInst As Object, custom() As Variant)
     On Error GoTo error_handler
     
-1    Set VBInstance = Application
-2    Set mcbMenuCommandBar = AddToAddInCommandBar("My CodeView")
-3    Set MenuHandler = VBInstance.Events.CommandBarEvents(mcbMenuCommandBar)
-4    Set ComponentHandler = VBInstance.Events.VBComponentsEvents(Nothing)
-5    Set ProjectHandler = VBInstance.Events.VBProjectsEvents()
-6    Set wToolCodeView = VBInstance.Windows.CreateToolWindow(AddInInst, "CodeView.ToolCodeView", "CodeView", GuidCodeView, mToolCodeView)
-7    Set mToolCodeView.VBInstance = Application
+1    Set g_VBInstance = Application
+2    Set mcbMenuCommandBar = AddToAddInCommandBar("CodeView - Source Navigation")
+3    Set MenuHandler = g_VBInstance.Events.CommandBarEvents(mcbMenuCommandBar)
+
+9    Set mcbMenuCommandBar2 = AddToAddInCommandBar("Find-All")
+10   Set MenuHandler2 = g_VBInstance.Events.CommandBarEvents(mcbMenuCommandBar2)
+
+4    Set ComponentHandler = g_VBInstance.Events.VBComponentsEvents(Nothing)
+5    Set ProjectHandler = g_VBInstance.Events.VBProjectsEvents()
+
+6    Set wToolCodeView = g_VBInstance.Windows.CreateToolWindow(AddInInst, "CodeView.ToolCodeView", "CodeView", GuidCodeView, mToolCodeView)
 8    Me.Show
      
     Exit Sub
@@ -68,9 +76,12 @@ Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjec
     On Error Resume Next
     
     mcbMenuCommandBar.Delete
+    mcbMenuCommandBar2.Delete
     FormDisplayed = False
     Unload mToolCodeView
+    Unload frmFindAll
     Set mToolCodeView = Nothing
+    Set g_VBInstance = Nothing
     
 End Sub
 
@@ -94,16 +105,20 @@ Private Sub MenuHandler_Click(ByVal CommandBarControl As Object, handled As Bool
     mToolCodeView.Reload
 End Sub
 
-Function AddToAddInCommandBar(sCaption As String) As Office.CommandBarControl
+Private Sub MenuHandler2_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    frmFindAll.Show
+End Sub
+
+
+
+Function AddToAddInCommandBar(sCaption As String, Optional menuName As String = "Add-Ins") As Office.CommandBarControl
     Dim cbMenuCommandBar As Office.CommandBarControl
     Dim cbMenu As Object
   
     On Error GoTo AddToAddInCommandBarErr
-    Set cbMenu = VBInstance.CommandBars("Add-Ins")
+    Set cbMenu = g_VBInstance.CommandBars(menuName)
     
-    If cbMenu Is Nothing Then
-        Exit Function
-    End If
+    If cbMenu Is Nothing Then Exit Function
     
     Set cbMenuCommandBar = cbMenu.Controls.Add(1)
     cbMenuCommandBar.Caption = sCaption

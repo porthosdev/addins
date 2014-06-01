@@ -151,15 +151,14 @@ Option Explicit
 
 'todo: save expanded states from last run?
 '      if filter active auto expand parent nodes if has results?
-
-Public VBInstance As VBIDE.VBE
+'      right click extract function?
 
 Public ActiveCodeModule As CodeModule
 Public CurMod As CodeModule
 Public ProjectName As String
 
 Private filterChanged As Boolean
-Private PrevLineCount As Long
+Private PrevMemberCount As Long
 Private Line As Long
 Private Nodes(5) As Node
 Private initilized As Boolean
@@ -245,7 +244,7 @@ Sub Reload(Optional NewVBComponent As VBComponent)
     Const hash As String = "#"
     Dim member As Object
     Dim n As Node
-    Dim i As Long
+    Dim I As Long
     Dim pos As Long
     Dim loc As Long
     Dim mType As Long
@@ -255,7 +254,7 @@ Sub Reload(Optional NewVBComponent As VBComponent)
     
     If Not initilized Then InitCodeView
     
-    curProj = VBInstance.ActiveVBProject.Name
+    curProj = g_VBInstance.ActiveVBProject.Name
     If curProj <> ProjectName Then
         If Len(ProjectName) > 0 Then 'project name has changed..
             SaveMySetting ProjectName, Trim(txtFilter.Text)
@@ -298,12 +297,12 @@ Sub Reload(Optional NewVBComponent As VBComponent)
     
     Freeze CodeView.hwnd
     For Each member In ActiveCodeModule.Members
-        i = 0
+        I = 0
         
         If member.Scope = vbext_Private Then
-            i = 5
+            I = 5
         ElseIf member.Scope = vbext_Friend Then
-            i = 10
+            I = 10
         End If
         
         mType = member.Type
@@ -327,10 +326,10 @@ Sub Reload(Optional NewVBComponent As VBComponent)
         
         If Len(txtFilter) > 0 Then
             If InStr(1, member.Name, txtFilter, vbTextCompare) > 0 Then
-                CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + i
+                CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + I
             End If
         Else
-            CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + i
+            CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + I
         End If
                 
     Next
@@ -350,9 +349,21 @@ Private Sub lblFilter_Click()
 End Sub
 
 Private Sub Timer_Timer()
-    'reloading constantly while coding has side effects
+
+    
+    'this used to autoreload if line count changed..this is to often
+    'the following might work better refreshing the treeview when a complete new member was added..
+    If Not ActiveCodeModule Is Nothing Then
+        If ActiveCodeModule.Members.Count <> PrevMemberCount Then
+            PrevMemberCount = ActiveCodeModule.Members.Count
+            filterChanged = True
+        End If
+    End If
+    
+    'reloading constantly while coding has side effects such as causes jumps in syntax check etc
     'reload function will exit with no changes if module has not changed, and if filter has not changed
     Reload
+    
 End Sub
 
 Private Sub txtFilter_Change()
@@ -388,5 +399,4 @@ End Sub
 Private Sub UserDocument_Terminate()
     On Error Resume Next
     SaveMySetting ProjectName, Trim(txtFilter.Text)
-    Set VBInstance = Nothing
 End Sub

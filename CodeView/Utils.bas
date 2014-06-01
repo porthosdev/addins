@@ -6,6 +6,8 @@ Private Declare Function SendMessageLong Lib "user32" Alias "SendMessageA" _
     ByVal lParam As Long) As Long
 Private Const WM_SETREDRAW As Long = &HB
 
+Public g_VBInstance As VBIDE.VBE
+
 Sub Freeze(hwnd As Long)
     SendMessageLong hwnd, WM_SETREDRAW, False, &O0
 End Sub
