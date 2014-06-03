@@ -41,6 +41,7 @@ Begin VB.UserDocument ToolCodeView
       End
    End
    Begin VB.Timer Timer 
+      Enabled         =   0   'False
       Interval        =   5000
       Left            =   840
       Top             =   1440
@@ -179,6 +180,13 @@ Private Sub CodeView_DblClick()
         ActiveCodeModule.CodePane.Window.SetFocus
     End If
     
+End Sub
+
+Private Sub CodeView_KeyDown(KeyCode As Integer, Shift As Integer)
+    If KeyCode = 116 Then  'f5
+        filterChanged = True
+        Reload
+    End If
 End Sub
 
 Private Sub CodeView_NodeClick(ByVal Node As MSComctlLib.Node)
@@ -351,18 +359,18 @@ End Sub
 Private Sub Timer_Timer()
 
     
-    'this used to autoreload if line count changed..this is to often
-    'the following might work better refreshing the treeview when a complete new member was added..
-    If Not ActiveCodeModule Is Nothing Then
-        If ActiveCodeModule.Members.Count <> PrevMemberCount Then
-            PrevMemberCount = ActiveCodeModule.Members.Count
-            filterChanged = True
-        End If
-    End If
-    
-    'reloading constantly while coding has side effects such as causes jumps in syntax check etc
-    'reload function will exit with no changes if module has not changed, and if filter has not changed
-    Reload
+'    'this used to autoreload if line count changed..this is to often
+'    'the following might work better refreshing the treeview when a complete new member was added..
+'    If Not ActiveCodeModule Is Nothing Then
+'        If ActiveCodeModule.Members.Count <> PrevMemberCount Then
+'            PrevMemberCount = ActiveCodeModule.Members.Count
+'            filterChanged = True
+'        End If
+'    End If
+'
+'    'reloading constantly while coding has side effects such as causes jumps in syntax check etc
+'    'reload function will exit with no changes if module has not changed, and if filter has not changed
+'    Reload
     
 End Sub
 
