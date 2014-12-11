@@ -52,4 +52,4 @@ DebugStartupOption=0
 AutoRefresh=1
 
 [fastBuild]
-fullPath=D:\_Installs\vb6_addins\FastBuild\fastbuild.dll
+fullPath=D:\_code\vb6_addins\FastBuild\fastbuild.dll

@@ -208,6 +208,7 @@ Public Function GetActiveProject() As VBProject
 End Function
 
 Private Function GetCurrentProcedureName() As String
+  On Error Resume Next
   Dim StartLine As Long
   Dim lJunk     As Long
   With GetActiveCodePane
@@ -230,6 +231,8 @@ Public Sub GetLineData(cmpMod As CodeModule, _
   Dim K         As Long
   Dim CleanElem As Variant
 
+  On Error Resume Next
+    
   For I = 1 To 4
         
         K = Choose(I, vbext_pk_Proc, vbext_pk_Get, vbext_pk_Let, vbext_pk_Set)
@@ -297,6 +300,8 @@ Public Function GetProcLineNumber(cmpMod As CodeModule, CodeLineNo As Long) As S
   Dim I         As Long
   Dim CleanElem As Variant
 
+  On Error Resume Next
+    
   LProcName = GetProcName(cmpMod, CodeLineNo)
   If LProcName = "(Declarations)" Then
      GetProcLineNumber = CodeLineNo
@@ -444,7 +449,8 @@ Public Sub DoSearch(lv As ListView, strfind As String, Optional wholeWord As Boo
 End Sub
  
 Private Sub cmdSearch_Click()
-
+  On Error Resume Next
+  
     Dim wholeWord As Boolean
     Dim matchCase As Boolean
     
@@ -519,7 +525,8 @@ hell:
 End Sub
 
 Private Sub lvMod_ItemClick(ByVal Item As MSComctlLib.ListItem)
-
+  On Error Resume Next
+  
     Dim p As CModule
     Dim r As CResult
     Dim li As ListItem
@@ -537,6 +544,8 @@ Private Sub lvMod_ItemClick(ByVal Item As MSComctlLib.ListItem)
 End Sub
 
 Private Sub txtFind_KeyPress(KeyCode As Integer)
+  On Error Resume Next
+  
     If KeyCode = 13 Then
         cmdSearch_Click
         KeyCode = 0

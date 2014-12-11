@@ -85,7 +85,7 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
     
 error_handler:
     
-    MsgBox Err.Description
+    MsgBox "MemoryWindow.OnConnect: " & Err.Description
     
 End Sub
 
@@ -145,7 +145,10 @@ Private Function Addit() As Office.CommandBarControl
     Dim cbMenu As Object
     Dim orgData As String
     
+    On Error Resume Next
+    
     orgData = Clipboard.GetText
+    Clipboard.Clear
     
     VBInstance.CommandBars(2).Visible = True
     Set cbMenu = VBInstance.CommandBars(2).Controls.Add(1, , , VBInstance.CommandBars(2).Controls.Count)
@@ -155,6 +158,6 @@ Private Function Addit() As Office.CommandBarControl
     Set Addit = cbMenu
     
     Clipboard.Clear
-    Clipboard.SetText orgData
+    If Len(orgData) > 0 Then Clipboard.SetText orgData
 End Function
 

@@ -10,12 +10,14 @@ LinkTool - Jim White
 
 MemoryWindow - mine 
    VC like memory window for VB6
+   https://www.youtube.com/watch?v=MA210lrPxTQ
 
 MouseWHeelFix - MicroSoft 
    adds mouse wheel scrolling support to IDE. (unmodified)
 
 FastBuild - mine 
    streamlines vb6 build process
+   https://www.youtube.com/watch?v=bLfvaYNIhzk
 
 Tabs - CodeHelp 1.2.2  Author: Luthfi M
    nice lightweight and stable addin which adds

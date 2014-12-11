@@ -107,7 +107,7 @@ End Sub
 'this method adds the Add-In to VB
 '------------------------------------------------------
 Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal ConnectMode As AddInDesignerObjects.ext_ConnectMode, ByVal AddInInst As Object, custom() As Variant)
-    On Error GoTo error_handler
+    On Error Resume Next
     
     'save the vb instance
     Set VBInstance = Application
@@ -159,7 +159,7 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
     
 error_handler:
     
-    MsgBox Err.Description
+    MsgBox "FastBuild.AddinInstance_OnConnection: " & Err.Description
     
 End Sub
 
@@ -332,17 +332,22 @@ Private Function AddButton(caption As String, resImg As Long) As Office.CommandB
     Dim cbMenu As Object
     Dim orgData As String
     
+    On Error Resume Next
+    
     orgData = Clipboard.GetText
+    Clipboard.Clear
     
     VBInstance.CommandBars(2).Visible = True
-    Set cbMenu = VBInstance.CommandBars(2).Controls.Add(1, , , VBInstance.CommandBars(2).Controls.Count)
+    Set cbMenu = VBInstance.CommandBars(2).Controls.Add(1) ', , , VBInstance.CommandBars(2).Controls.Count)
     cbMenu.caption = caption
     Clipboard.SetData LoadResPicture(resImg, 0)
     cbMenu.PasteFace
     Set AddButton = cbMenu
     
     Clipboard.Clear
-    Clipboard.SetText orgData
+    If Len(orgData) > 0 Then Clipboard.SetText orgData
+    
+    'If Err.Number <> 0 Then MsgBox Err.Description
 End Function
 
 Private Function FindRunButton() As Office.CommandBarControl
@@ -446,7 +451,7 @@ Sub SetImmediateText(text As String)
     SendKeys "^v", True
    
     Clipboard.Clear
-    Clipboard.SetText saved
+    If Len(saved) > 0 Then Clipboard.SetText saved
 End Sub
 
 Private Sub mnuMake_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)

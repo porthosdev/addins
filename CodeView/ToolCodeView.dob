@@ -172,6 +172,7 @@ End Sub
 
 Private Sub CodeView_DblClick()
 
+    On Error Resume Next
     If ActiveCodeModule Is Nothing Then Exit Sub
     
     If Not CodeView.SelectedItem Is Nothing Then
@@ -183,6 +184,7 @@ Private Sub CodeView_DblClick()
 End Sub
 
 Private Sub CodeView_KeyDown(KeyCode As Integer, Shift As Integer)
+    On Error Resume Next
     If KeyCode = 116 Then  'f5
         filterChanged = True
         Reload
@@ -192,6 +194,8 @@ End Sub
 Private Sub CodeView_NodeClick(ByVal Node As MSComctlLib.Node)
     Dim value As String
 
+    On Error Resume Next
+    
     If ActiveCodeModule Is Nothing Then Exit Sub
     
     value = Node.key
@@ -199,6 +203,7 @@ Private Sub CodeView_NodeClick(ByVal Node As MSComctlLib.Node)
     If Len(value) < 4 Then Exit Sub
     
     Line = Mid(value, 4, Len(value) - 4)
+    ActiveCodeModule.CodePane.Show
     ActiveCodeModule.CodePane.TopLine = Line
     Line = Line + 1
     
@@ -404,7 +409,11 @@ Private Sub UserDocument_Show()
     UserDocument.MinWidth = 100  'we dont want scroll bars to auto show..
     UserDocument.MinHeight = 100
     If Not initilized Then InitCodeView
-    If ActiveCodeModule Is Nothing Then Reload g_VBInstance.ActiveCodePane.CodeModule
+    If ActiveCodeModule Is Nothing Then
+        If g_VBInstance.ActiveCodePane Is Nothing Then Exit Sub
+        If g_VBInstance.ActiveCodePane.CodeModule Is Nothing Then Exit Sub
+        Reload g_VBInstance.ActiveCodePane.CodeModule
+    End If
 End Sub
 
 Private Sub UserDocument_Terminate()

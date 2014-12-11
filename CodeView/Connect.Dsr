@@ -55,14 +55,14 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
     On Error GoTo error_handler
     
 1    Set g_VBInstance = Application
-2    Set mcbMenuCommandBar = AddToAddInCommandBar("CodeView - Source Navigation")
-3    Set MenuHandler = g_VBInstance.Events.CommandBarEvents(mcbMenuCommandBar)
+2    'Set mcbMenuCommandBar = AddToAddInCommandBar("CodeView - Source Navigation")
+3    'Set MenuHandler = g_VBInstance.Events.CommandBarEvents(mcbMenuCommandBar)
 
 9    Set mcbMenuCommandBar2 = AddToAddInCommandBar("Find-All")
 10   Set MenuHandler2 = g_VBInstance.Events.CommandBarEvents(mcbMenuCommandBar2)
 
 4    Set ComponentHandler = g_VBInstance.Events.VBComponentsEvents(Nothing)
-5    Set ProjectHandler = g_VBInstance.Events.VBProjectsEvents()
+5    'Set ProjectHandler = g_VBInstance.Events.VBProjectsEvents()
 
 6    Set wToolCodeView = g_VBInstance.Windows.CreateToolWindow(AddInInst, "CodeView.ToolCodeView", "CodeView", GuidCodeView, mToolCodeView)
 8    Me.Show
@@ -73,15 +73,26 @@ error_handler:
 End Sub
 
 Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjects.ext_DisconnectMode, custom() As Variant)
+    
     On Error Resume Next
     
     mcbMenuCommandBar.Delete
     mcbMenuCommandBar2.Delete
-    FormDisplayed = False
-    Unload mToolCodeView
-    Unload frmFindAll
+'    FormDisplayed = False
+    
+    Set ProjectHandler = Nothing
+    Set ComponentHandler = Nothing
+    Set MenuHandler = Nothing
+    Set MenuHandler2 = Nothing
     Set mToolCodeView = Nothing
     Set g_VBInstance = Nothing
+    Set mcbMenuCommandBar = Nothing
+    Set mcbMenuCommandBar2 = Nothing
+    Set wToolCodeView = Nothing
+    
+    Unload mToolCodeView
+    Unload frmFindAll
+
     
 End Sub
 
@@ -91,7 +102,15 @@ End Sub
 
 Private Sub ComponentHandler_ItemSelected(ByVal VBComponent As VBIDE.VBComponent)
     
+    On Error Resume Next
+    
+    If VBComponent.Type = vbext_ct_RelatedDocument Then Exit Sub
+    
+    'for related documents, VB6 IDE crashs here Method CodeModule of object VBComponent failed..
+    'apparently the on error resume next can not catch this...(but ok while in IDE debugging):
+    'HRESULT: 0x80010105 (RPC_E_SERVERFAULT) question Automation error the server threw an exception..
     If Not VBComponent.CodeModule Is Nothing Then
+        If Err.Number <> 0 Then Exit Sub
         Set mToolCodeView.ActiveCodeModule = VBComponent.CodeModule
         mToolCodeView.Reload
     End If
@@ -99,11 +118,13 @@ Private Sub ComponentHandler_ItemSelected(ByVal VBComponent As VBIDE.VBComponent
 End Sub
 
 Private Sub MenuHandler_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    On Error Resume Next
     Me.Show
     mToolCodeView.Reload
 End Sub
 
 Private Sub MenuHandler2_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    On Error Resume Next
     frmFindAll.Show
 End Sub
 
