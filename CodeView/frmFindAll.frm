@@ -174,8 +174,15 @@ Attribute VB_Exposed = False
 
 
 Private bCancel As Boolean
-Private Declare Sub SetWindowPos Lib "user32" (ByVal hwnd As Long, ByVal hWndInsertAfter As Long, ByVal x As Long, ByVal Y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long)
+Private Declare Sub SetWindowPos Lib "user32" (ByVal hwnd As Long, ByVal hWndInsertAfter As Long, ByVal x As Long, ByVal y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long)
 Private Const HWND_TOPMOST = -1
+
+Public Sub LaunchAndDoSearch(txt As String)
+        txtFind = txt
+        Me.Visible = True
+        cmdSearch_Click
+End Sub
+
 
 Sub SetWindowTopMost(f As Form)
    SetWindowPos f.hwnd, HWND_TOPMOST, f.Left / 15, _

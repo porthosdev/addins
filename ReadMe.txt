@@ -29,3 +29,7 @@ CodeView - Patrick de Groot
   variables/properties/constants of the currently selected 
   form/module/class/control. This way you have a better overview of 
   your code. It is a very usefull companion for the project explorer.
+
+IndenterVB6.exe - Office Automation Ltd - V3.5 - 2.10.2005
+  The Smart Indenter is a utility to tidy up VBA code by rebuilding the indentation of each line.
+  http://www.oaltd.co.uk/Indenter/Default.htm

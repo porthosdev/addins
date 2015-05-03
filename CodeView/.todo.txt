@@ -4,3 +4,8 @@
    results into list view showing line number and line text
    possible file filter textbox with file treeview on left listview on right
    (this is clone of what they have in lazarus to navigate huge projects and it rocks)
+
+- right cliock on functions rename
+- highlight word in editor and highlight all others? (can do for rtf)
+
+- find all - if compile error topmost blocks message form nonmovable...

@@ -142,6 +142,27 @@ Begin VB.UserDocument ToolCodeView
       ImageList       =   "Babel"
       Appearance      =   1
    End
+   Begin VB.Menu mnupopup 
+      Caption         =   "mnupopup"
+      Visible         =   0   'False
+      Begin VB.Menu mnuFindReferences 
+         Caption         =   "Find References"
+      End
+      Begin VB.Menu mnuExtractMethod 
+         Caption         =   "Extract Method"
+         Begin VB.Menu mnuExtractAsText 
+            Caption         =   "as Text"
+         End
+         Begin VB.Menu mnuExtractAsHTML 
+            Caption         =   "as Html"
+         End
+      End
+      Begin VB.Menu mnuRenameFunction 
+         Caption         =   "Simple Rename"
+         Enabled         =   0   'False
+         Visible         =   0   'False
+      End
+   End
 End
 Attribute VB_Name = "ToolCodeView"
 Attribute VB_GlobalNameSpace = False
@@ -152,7 +173,7 @@ Option Explicit
 
 'todo: save expanded states from last run?
 '      if filter active auto expand parent nodes if has results?
-'      right click extract function?
+'      CodeView_Mouseup: if child of constants or variables disable extract method..(no harm though)
 
 Public ActiveCodeModule As CodeModule
 Public CurMod As CodeModule
@@ -161,6 +182,7 @@ Public ProjectName As String
 Private filterChanged As Boolean
 Private PrevMemberCount As Long
 Private Line As Long
+Private LineCount As Long
 Private Nodes(5) As Node
 Private initilized As Boolean
 
@@ -191,6 +213,10 @@ Private Sub CodeView_KeyDown(KeyCode As Integer, Shift As Integer)
     End If
 End Sub
 
+Private Sub CodeView_Mouseup(Button As Integer, Shift As Integer, x As Single, y As Single)
+    If Button = vbRightButton Then PopupMenu mnupopup
+End Sub
+
 Private Sub CodeView_NodeClick(ByVal Node As MSComctlLib.Node)
     Dim value As String
 
@@ -205,6 +231,14 @@ Private Sub CodeView_NodeClick(ByVal Node As MSComctlLib.Node)
     Line = Mid(value, 4, Len(value) - 4)
     ActiveCodeModule.CodePane.Show
     ActiveCodeModule.CodePane.TopLine = Line
+    
+    LineCount = 0
+    LineCount = ActiveCodeModule.ProcCountLines(Node.text, vbext_pk_Proc)
+    If LineCount = 0 Then LineCount = ActiveCodeModule.ProcCountLines(Node.text, vbext_pk_Get)
+    If LineCount = 0 Then LineCount = ActiveCodeModule.ProcCountLines(Node.text, vbext_pk_Let)
+    If LineCount = 0 Then LineCount = ActiveCodeModule.ProcCountLines(Node.text, vbext_pk_Set)
+    'MsgBox "Linecount: " & LineCount & " for " & Node.text
+    
     Line = Line + 1
     
 End Sub
@@ -257,7 +291,7 @@ Sub Reload(Optional NewModule As CodeModule)
     Const hash As String = "#"
     Dim member As Object
     Dim n As Node
-    Dim I As Long
+    Dim i As Long     'used to set image index
     Dim pos As Long
     Dim loc As Long
     Dim mType As Long
@@ -310,12 +344,12 @@ Sub Reload(Optional NewModule As CodeModule)
     
     Freeze CodeView.hwnd
     For Each member In ActiveCodeModule.Members
-        I = 0
+        i = 0
         
         If member.Scope = vbext_Private Then
-            I = 5
+            i = 5
         ElseIf member.Scope = vbext_Friend Then
-            I = 10
+            i = 10
         End If
         
         mType = member.Type
@@ -331,6 +365,7 @@ Sub Reload(Optional NewModule As CodeModule)
         Select Case mType
             Case vbext_mt_Method, vbext_mt_Event
                 loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Proc)
+                'lcnt = ActiveCodeModule.ProcCountLines(member.Name, vbext_pk_Proc)
             Case vbext_mt_Property
                 loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Get)
                 If loc = 0 Then loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Let)
@@ -339,10 +374,10 @@ Sub Reload(Optional NewModule As CodeModule)
         
         If Len(txtFilter) > 0 Then
             If InStr(1, member.Name, txtFilter, vbTextCompare) > 0 Then
-                CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + I
+                CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + i
             End If
         Else
-            CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + I
+            CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + i
         End If
                 
     Next
@@ -359,6 +394,32 @@ End Sub
 
 Private Sub lblFilter_Click()
     txtFilter.text = ""
+End Sub
+
+ 
+Private Sub mnuExtractAsHTML_Click()
+    On Error Resume Next
+    Dim body As String
+    If ActiveCodeModule Is Nothing Then Exit Sub
+    If CodeView.SelectedItem Is Nothing Then Exit Sub
+    body = ActiveCodeModule.Lines(Line - 1, LineCount)
+    Clipboard.Clear
+    Clipboard.SetText htmlize(body)
+End Sub
+
+Private Sub mnuExtractAsText_Click()
+    On Error Resume Next
+    If ActiveCodeModule Is Nothing Then Exit Sub
+    If CodeView.SelectedItem Is Nothing Then Exit Sub
+    Clipboard.Clear
+    Clipboard.SetText ActiveCodeModule.Lines(Line - 1, LineCount)
+End Sub
+
+Private Sub mnuFindReferences_Click()
+    On Error Resume Next
+    If ActiveCodeModule Is Nothing Then Exit Sub
+    If CodeView.SelectedItem Is Nothing Then Exit Sub
+    frmFindAll.LaunchAndDoSearch CodeView.SelectedItem.text
 End Sub
 
 Private Sub Timer_Timer()
