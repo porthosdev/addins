@@ -33,6 +33,16 @@ Begin VB.UserDocument ToolCodeView
       End
       Begin VB.Label lblFilter 
          Caption         =   "Filter:"
+         BeginProperty Font 
+            Name            =   "MS Sans Serif"
+            Size            =   8.25
+            Charset         =   0
+            Weight          =   400
+            Underline       =   -1  'True
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+         ForeColor       =   &H00FF0000&
          Height          =   240
          Left            =   0
          TabIndex        =   3
@@ -289,9 +299,9 @@ End Sub
 Sub Reload(Optional NewModule As CodeModule)
 
     Const hash As String = "#"
-    Dim member As Object
+    Dim mber As Member
     Dim n As Node
-    Dim i As Long     'used to set image index
+    Dim I As Long     'used to set image index
     Dim pos As Long
     Dim loc As Long
     Dim mType As Long
@@ -343,41 +353,57 @@ Sub Reload(Optional NewModule As CodeModule)
     ClearCodeView
     
     Freeze CodeView.hwnd
-    For Each member In ActiveCodeModule.Members
-        i = 0
+    For Each mber In ActiveCodeModule.Members
+        I = 0
         
-        If member.Scope = vbext_Private Then
-            i = 5
-        ElseIf member.Scope = vbext_Friend Then
-            i = 10
+        If mber.Scope = vbext_Private Then
+            I = 5
+        ElseIf mber.Scope = vbext_Friend Then
+            I = 10
         End If
         
-        mType = member.Type
-        If mType = vbext_mt_Method Then
-            pos = InStr(member.Name, "_")
-            If pos > 3 Then
-                mType = vbext_mt_Event
-            End If
-        End If
+        mType = mber.Type
+        loc = mber.CodeLocation
         
-        loc = member.CodeLocation
+        If InStr(mber.Name, "_Click") > 0 Or InStr(mber.Name, "_Mouse") > 0 Or (mber.Name Like "*_*Click") Then
+            'lets move these to the Events nodes instead because there are allot
+            'of them and the node is usually empty I know this isnt a complete list..but its the heaviest used..
+             mType = vbext_mt_Event
+        End If
         
         Select Case mType
             Case vbext_mt_Method, vbext_mt_Event
-                loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Proc)
+                loc = ActiveCodeModule.ProcBodyLine(mber.Name, vbext_pk_Proc)
                 'lcnt = ActiveCodeModule.ProcCountLines(member.Name, vbext_pk_Proc)
             Case vbext_mt_Property
-                loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Get)
-                If loc = 0 Then loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Let)
-                If loc = 0 Then loc = ActiveCodeModule.ProcBodyLine(member.Name, vbext_pk_Set)
+                loc = ActiveCodeModule.ProcBodyLine(mber.Name, vbext_pk_Get)
+                If loc = 0 Then loc = ActiveCodeModule.ProcBodyLine(mber.Name, vbext_pk_Let)
+                If loc = 0 Then loc = ActiveCodeModule.ProcBodyLine(mber.Name, vbext_pk_Set)
         End Select
         
         If Len(txtFilter) > 0 Then
-            If InStr(1, member.Name, txtFilter, vbTextCompare) > 0 Then
-                CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + i
+            If VBA.Left(txtFilter, 1) = "-" And Len(txtFilter) > 1 Then   'subtractive filter like -mnu,cmd,lv
+                Dim tmp() As String, addit As Boolean, x
+                addit = True
+                If InStr(txtFilter, ",") Then tmp = Split(Mid(txtFilter, 2), ",") Else tmp = Split(Mid(txtFilter, 2), " ")
+                For Each x In tmp
+                    If Len(x) > 0 Then
+                        If InStr(1, mber.Name, x, vbTextCompare) > 0 Then
+                            addit = False
+                            Exit For
+                        End If
+                    End If
+                Next
+                If addit Then
+                    CodeView.Nodes.Add Nodes(mType), tvwChild, mber.Scope & mType & hash & loc & hash, mber.Name, mType + I
+                Else
+                    'Stop
+                End If
+            ElseIf InStr(1, mber.Name, txtFilter, vbTextCompare) > 0 Then
+                CodeView.Nodes.Add Nodes(mType), tvwChild, mber.Scope & mType & hash & loc & hash, mber.Name, mType + I
             End If
         Else
-            CodeView.Nodes.Add Nodes(mType), tvwChild, member.Scope & mType & hash & loc & hash, member.Name, mType + i
+            CodeView.Nodes.Add Nodes(mType), tvwChild, mber.Scope & mType & hash & loc & hash, mber.Name, mType + I
         End If
                 
     Next
@@ -441,8 +467,15 @@ Private Sub Timer_Timer()
 End Sub
 
 Private Sub txtFilter_Change()
+
+    If VBA.Left(txtFilter, 1) = "-" Then 'they are typing a subtractive filter..give them time to formulate it..
+        If Len(txtFilter) = 1 Then Exit Sub
+        If VBA.Right(txtFilter, 1) = "," Or VBA.Right(txtFilter, 1) = " " Then Exit Sub
+    End If
+    
     filterChanged = True
     Reload
+    
 End Sub
 
 Private Sub UserDocument_Resize()

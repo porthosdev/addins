@@ -30,6 +30,9 @@ CodeView - Patrick de Groot
   form/module/class/control. This way you have a better overview of 
   your code. It is a very usefull companion for the project explorer.
 
+  Note filter supports subtractive filters too like "-mouse click" would hide 
+  anything with either of those strings in its name..minus must be first character
+
 IndenterVB6.exe - Office Automation Ltd - V3.5 - 2.10.2005
   The Smart Indenter is a utility to tidy up VBA code by rebuilding the indentation of each line.
   http://www.oaltd.co.uk/Indenter/Default.htm

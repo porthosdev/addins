@@ -1,4 +1,6 @@
 
+- filter: support -xx, -yy type filters..
+
 - Find All menu item:
    search all open files for regex
    results into list view showing line number and line text
