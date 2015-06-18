@@ -60,6 +60,11 @@ Dim mcbImmediate                As Office.CommandBarControl
 Private WithEvents mnuImmediate As CommandBarEvents
 Attribute mnuImmediate.VB_VarHelpID = -1
 
+Dim mcbAddFiles                As Office.CommandBarControl
+Private WithEvents mnuAddFiles As CommandBarEvents
+Attribute mnuAddFiles.VB_VarHelpID = -1
+
+
 Dim mcbRealMakeMenu As Office.CommandBarControl
 'Private WithEvents mnuMake As CommandBarEvents 'we could hook into its events here if we wanted..
 
@@ -136,6 +141,9 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
         Set mcbAddref = AddrefMenu("Quick AddRef")
         Set mnuAddref = VBInstance.Events.CommandBarEvents(mcbAddref)
         
+        Set mcbAddFiles = AddrefMenu("Add Multiple Files", "")
+        Set mnuAddFiles = VBInstance.Events.CommandBarEvents(mcbAddFiles)
+
         Set FileEvents = Application.Events.FileControlEvents(Nothing)
         
         Set mcbRealStartButton = FindRunButton()
@@ -250,6 +258,34 @@ Private Sub FileEvents_DoGetNewFileName(ByVal VBProject As VBIDE.VBProject, ByVa
         VBInstance.ActiveVBProject.WriteProperty "fastBuild", "fullPath", ""
     End If
  
+End Sub
+
+Private Sub mnuAddFiles_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    
+    Dim f() As String
+    Dim ff
+    Dim e() As String
+    
+    On Error Resume Next
+    
+    f() = ShowOpenMultiSelect()
+    If AryIsEmpty(f) Then Exit Sub
+    
+    For Each ff In f
+        Err.Clear
+        VBInstance.ActiveVBProject.VBComponents.AddFile ff
+        If Err.Number <> 0 Then
+            'push e, FileNameFromPath(ff) & ": " & Err.Description
+            push e, Err.Description  'seems to already contain file names
+        End If
+    Next
+    
+    If AryIsEmpty(e) Then
+        'MsgBox "All files imported no errors."
+    Else
+        MsgBox Join(e, vbCrLf), vbExclamation
+    End If
+    
 End Sub
 
 Private Sub mnuAddref_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
@@ -369,7 +405,7 @@ Private Function FindRunButton() As Office.CommandBarControl
     
 End Function
 
-Private Function AddrefMenu(caption As String) As Office.CommandBarControl
+Private Function AddrefMenu(caption As String, Optional afterItem = "Refere&nces...") As Office.CommandBarControl
 
     Dim cbProjMenu As Office.CommandBarControl
     Dim cbSubMenu As Office.CommandBarControl
@@ -381,11 +417,15 @@ Private Function AddrefMenu(caption As String) As Office.CommandBarControl
     
     If cbProjMenu Is Nothing Then Exit Function
 
-    For Each cbSubMenu In cbProjMenu.Controls
-        i = i + 1
-        If cbSubMenu.caption = "Refere&nces..." Then Exit For
-    Next
-    If i = cbProjMenu.Controls.Count Then Exit Function
+    If Len(afterItem) > 0 Then
+        For Each cbSubMenu In cbProjMenu.Controls
+            i = i + 1
+            If cbSubMenu.caption = afterItem Then Exit For
+        Next
+        If i = cbProjMenu.Controls.Count Then Exit Function
+    Else
+        i = -1
+    End If
 
     Set AddrefMenu = cbProjMenu.Controls.Add(, , , i + 2) 'add the menu before the References ... menu
     AddrefMenu.caption = caption

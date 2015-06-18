@@ -375,7 +375,7 @@ End Function
 Function ExistsInLV(s, lv As ListView) As Boolean
     Dim li As ListItem
     For Each li In lv.ListItems
-        If li.Text = s Then ExistsInLV = True
+        If li.text = s Then ExistsInLV = True
     Next
 End Function
 
@@ -448,7 +448,7 @@ Private Sub lvFiltered_ItemCheck(ByVal item As MSComctlLib.ListItem)
     If SSTab1.Tab = 0 Then Set llv = lv Else Set llv = lv2
     
     For Each li In llv.ListItems
-        If li.Text = item.Text Then
+        If li.text = item.text Then
             li.Checked = True 'apparently this doesnt fire the _ItemCheck event like it thought..
             Exit For
         End If
@@ -481,22 +481,42 @@ Sub HandleItemCheck(ByVal item As MSComctlLib.ListItem)
     guid = selEntry.clsid
     
     If item.Checked Then
-        Set r = VBInstance.ActiveVBProject.References.AddFromGuid(guid, 0, 0)
-        selEntry.AlreadyReferenced = True
-        If r Is Nothing Then
-            MsgBox "Could not add reference to " & guid
-            Exit Sub
+        If SSTab1.Tab = 0 Then 'components
+            VBInstance.ActiveVBProject.AddToolboxProgID selEntry.progID
+            selEntry.AlreadyReferenced = True
+        Else
+            Set r = VBInstance.ActiveVBProject.References.AddFromFile(selEntry.path)
+            selEntry.AlreadyReferenced = True
+            If r Is Nothing Then
+                MsgBox "Could not add reference to " & guid
+                Exit Sub
+            End If
         End If
     Else
-        Set r = GetReference(guid)
+        
+        If SSTab1.Tab = 0 Then
+            MsgBox "Sorry i cant remove components from the toolbox?", vbInformation
+            item.Checked = True
+            Exit Sub
+        End If
+        
+        'if you remove ref for an ocx
+        'it wont remove from toolbox..if then use ide to remove compoenent crash here:
+        '004A21CB  cmp         word ptr [ecx+32h],0
+        
+        'If SSTab1.Tab = 0 Then guid = selEntry.progID
+        Set r = GetReference(guid, (SSTab1.Tab = 0))
         If r Is Nothing Then
             MsgBox "Could not find reference to " & guid
             Exit Sub
         End If
         'this can fail for default references..a boolean return would have been nice..
         'we should recheck getreference and recheck box if it failed..but to lazy for small bug..
+       
         VBInstance.ActiveVBProject.References.Remove r
         selEntry.AlreadyReferenced = False
+         
+        
     End If
     
     
@@ -549,11 +569,11 @@ Private Sub txtSearch_Change()
     
     For Each li In llv.ListItems
         If txtSearch = "checked" And li.Checked Then
-            Set li2 = lvFiltered.ListItems.Add(, , li.Text)
+            Set li2 = lvFiltered.ListItems.Add(, , li.text)
             Set li2.Tag = li.Tag
             li2.Checked = li.Checked
-        ElseIf InStr(1, li.Text, txtSearch, vbTextCompare) > 0 Then
-            Set li2 = lvFiltered.ListItems.Add(, , li.Text)
+        ElseIf InStr(1, li.text, txtSearch, vbTextCompare) > 0 Then
+            Set li2 = lvFiltered.ListItems.Add(, , li.text)
             Set li2.Tag = li.Tag
             li2.Checked = li.Checked
         End If
@@ -572,12 +592,20 @@ Private Function RefAlreadyExists(clsid As String) As Boolean
     Next
 End Function
 
-Private Function GetReference(clsid As String) As Reference
+Private Function GetReference(clsid As String, Optional isName As Boolean = False) As Reference
     Dim r As Reference
     For Each r In VBInstance.ActiveVBProject.References
-        If InStr(1, r.guid, clsid, vbTextCompare) > 0 Then
-            Set GetReference = r
-            Exit Function
+        Debug.Print r.guid & " : " & r.name
+        If isName Then
+            If InStr(1, clsid, r.name, vbTextCompare) > 0 Then
+                Set GetReference = r
+                Exit Function
+            End If
+        Else
+            If InStr(1, r.guid, clsid, vbTextCompare) > 0 Then
+                Set GetReference = r
+                Exit Function
+            End If
         End If
     Next
 End Function
