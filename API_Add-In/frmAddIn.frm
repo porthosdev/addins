@@ -1,6 +1,7 @@
 VERSION 5.00
-Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "comdlg32.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "mscomctl.ocx"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "COMDLG32.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
+Object = "{3B7C8863-D78F-101B-B9B5-04021C009402}#1.2#0"; "RICHTX32.OCX"
 Begin VB.Form frmAddIn 
    BorderStyle     =   5  'Sizable ToolWindow
    Caption         =   "API Add-In For Visual basic"
@@ -13,13 +14,35 @@ Begin VB.Form frmAddIn
    MinButton       =   0   'False
    ScaleHeight     =   7920
    ScaleWidth      =   9930
+   Begin RichTextLib.RichTextBox txtResult 
+      Height          =   2655
+      Left            =   60
+      TabIndex        =   17
+      Top             =   4500
+      Width           =   9495
+      _ExtentX        =   16748
+      _ExtentY        =   4683
+      _Version        =   393217
+      ScrollBars      =   3
+      RightMargin     =   50000
+      TextRTF         =   $"frmAddIn.frx":0000
+      BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
+         Name            =   "Courier"
+         Size            =   12
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+   End
    Begin VB.PictureBox picHold 
       BorderStyle     =   0  'None
       Height          =   555
       Left            =   90
       ScaleHeight     =   555
       ScaleWidth      =   9420
-      TabIndex        =   9
+      TabIndex        =   8
       Top             =   3870
       Width           =   9420
       Begin VB.PictureBox picHoldBtn 
@@ -27,7 +50,7 @@ Begin VB.Form frmAddIn
          Left            =   5355
          ScaleHeight     =   495
          ScaleWidth      =   3960
-         TabIndex        =   14
+         TabIndex        =   13
          Top             =   0
          Width           =   4020
          Begin VB.CommandButton cmdRemove 
@@ -35,7 +58,7 @@ Begin VB.Form frmAddIn
             Height          =   375
             Index           =   0
             Left            =   90
-            TabIndex        =   17
+            TabIndex        =   16
             Top             =   60
             Width           =   1215
          End
@@ -44,7 +67,7 @@ Begin VB.Form frmAddIn
             Height          =   375
             Index           =   1
             Left            =   1350
-            TabIndex        =   16
+            TabIndex        =   15
             Top             =   60
             Width           =   1215
          End
@@ -52,7 +75,7 @@ Begin VB.Form frmAddIn
             Caption         =   "&Add"
             Height          =   375
             Left            =   2700
-            TabIndex        =   15
+            TabIndex        =   14
             Top             =   60
             Width           =   1215
          End
@@ -62,7 +85,7 @@ Begin VB.Form frmAddIn
          Height          =   195
          Index           =   0
          Left            =   0
-         TabIndex        =   13
+         TabIndex        =   12
          Top             =   45
          Value           =   1  'Checked
          Width           =   1635
@@ -72,7 +95,7 @@ Begin VB.Form frmAddIn
          Height          =   195
          Index           =   1
          Left            =   1755
-         TabIndex        =   12
+         TabIndex        =   11
          Top             =   45
          Value           =   1  'Checked
          Width           =   1320
@@ -82,7 +105,7 @@ Begin VB.Form frmAddIn
          Height          =   195
          Index           =   2
          Left            =   3195
-         TabIndex        =   11
+         TabIndex        =   10
          Top             =   45
          Value           =   1  'Checked
          Width           =   1500
@@ -92,7 +115,7 @@ Begin VB.Form frmAddIn
          Height          =   195
          Index           =   3
          Left            =   225
-         TabIndex        =   10
+         TabIndex        =   9
          Top             =   315
          Value           =   1  'Checked
          Width           =   1860
@@ -101,7 +124,7 @@ Begin VB.Form frmAddIn
          Height          =   255
          Left            =   4800
          MousePointer    =   7  'Size N S
-         Picture         =   "frmAddIn.frx":0000
+         Picture         =   "frmAddIn.frx":007C
          Stretch         =   -1  'True
          Top             =   255
          Width           =   255
@@ -110,7 +133,7 @@ Begin VB.Form frmAddIn
          Height          =   255
          Left            =   4800
          MousePointer    =   7  'Size N S
-         Picture         =   "frmAddIn.frx":0442
+         Picture         =   "frmAddIn.frx":04BE
          Stretch         =   -1  'True
          Top             =   0
          Width           =   255
@@ -125,7 +148,7 @@ Begin VB.Form frmAddIn
    Begin MSComctlLib.ListView lstFindResult 
       Height          =   3390
       Left            =   90
-      TabIndex        =   8
+      TabIndex        =   7
       Top             =   450
       Width           =   9420
       _ExtentX        =   16616
@@ -142,6 +165,15 @@ Begin VB.Form frmAddIn
       BackColor       =   -2147483643
       BorderStyle     =   1
       Appearance      =   1
+      BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
+         Name            =   "Courier"
+         Size            =   12
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       NumItems        =   0
    End
    Begin MSComDlg.CommonDialog CDialog 
@@ -151,16 +183,6 @@ Begin VB.Form frmAddIn
       _ExtentY        =   847
       _Version        =   393216
       CancelError     =   -1  'True
-   End
-   Begin VB.TextBox txtResult 
-      Height          =   2715
-      Left            =   90
-      Locked          =   -1  'True
-      MultiLine       =   -1  'True
-      ScrollBars      =   3  'Both
-      TabIndex        =   6
-      Top             =   4455
-      Width           =   9420
    End
    Begin VB.CommandButton cmdFind 
       Caption         =   "&Find"
@@ -172,19 +194,27 @@ Begin VB.Form frmAddIn
    End
    Begin VB.ComboBox cmbType 
       Height          =   315
-      ItemData        =   "frmAddIn.frx":0884
+      ItemData        =   "frmAddIn.frx":0900
       Left            =   990
-      List            =   "frmAddIn.frx":0891
+      List            =   "frmAddIn.frx":090D
       Style           =   2  'Dropdown List
       TabIndex        =   4
       Top             =   90
       Width           =   1455
    End
    Begin VB.TextBox txtFind 
+      BeginProperty Font 
+         Name            =   "Courier"
+         Size            =   12
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   285
       Left            =   2520
       TabIndex        =   2
-      Text            =   "*"
       Top             =   90
       Width           =   5685
    End
@@ -208,7 +238,7 @@ Begin VB.Form frmAddIn
    Begin VB.Image imgOpen 
       Height          =   240
       Left            =   180
-      Picture         =   "frmAddIn.frx":08B1
+      Picture         =   "frmAddIn.frx":092D
       Top             =   135
       Width           =   240
    End
@@ -226,7 +256,7 @@ Begin VB.Form frmAddIn
       EndProperty
       Height          =   240
       Left            =   135
-      TabIndex        =   7
+      TabIndex        =   6
       Top             =   7335
       Width           =   3615
    End
@@ -246,8 +276,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Public VBInstance As VBIDE.VBE
-Public Connect As Connect
+#Const STANDALONE = True
+
+#If Not STANDALONE Then
+    Public VBInstance As VBIDE.VBE
+    Public Connect As Connect
+#End If
 
 Option Explicit
 Option Compare Text
@@ -268,8 +302,9 @@ Dim PY As Single
 
 Private Sub CancelButton_Click()
     Unload Me
-    
-    Connect.Hide
+    #If Not STANDALONE Then
+        Connect.Hide
+    #End If
 End Sub
 
 Private Sub chkPublicPrivate_Click(Index As Integer)
@@ -346,6 +381,10 @@ Private Sub cmdFind_Click()
     Dim FNum As Integer, StrLine As String
     Dim LI As ListItem, FuncName As String, K As Integer
     
+    Dim match As String
+    match = txtFind
+    If VBA.Right(match, 1) <> "*" Then match = match & "*"
+    
     If Dir(APIFileName) = "" Then APIFileName = ""
     If APIFileName = "" Then Exit Sub
     
@@ -385,7 +424,7 @@ Private Sub cmdFind_Click()
                 Line Input #FNum, StrLine
                 
                 If (StrLine Like "*Const *=*") And (Not Trim(StrLine) Like "'*") Then
-                    If StrLine Like "*Const " & txtFind.Text Then
+                    If StrLine Like "*Const " & match Then
                         If Trim(StrLine) Like "Private*" Then _
                             StrLine = Trim(Mid(StrLine, InStr(1, StrLine, "Private", vbTextCompare) + 8, Len(StrLine)))
                         
@@ -416,7 +455,7 @@ Private Sub cmdFind_Click()
                         And (Not Trim(StrLine) Like "*Declare Sub*") _
                         And (Not Trim(StrLine) Like "*Const*") Then
                         
-                    If StrLine Like "*Type " & txtFind.Text Then
+                    If StrLine Like "*Type " & match Then
                         If Trim(StrLine) Like "Private*" Then _
                             StrLine = Trim(Mid(StrLine, InStr(1, StrLine, "Private", vbTextCompare) + 8, Len(StrLine)))
                         
@@ -456,7 +495,7 @@ Private Sub cmdFind_Click()
                     
                     StrLine = Trim(Mid(StrLine, 8, Len(StrLine)))
                     
-                    If Mid(StrLine, InStr(1, StrLine, " ") + 1, Len(StrLine)) Like txtFind.Text Then
+                    If Mid(StrLine, InStr(1, StrLine, " ") + 1, Len(StrLine)) Like match Then
                         K = IIf(LCase(Left(StrLine, 4)) = "sub ", 4, 9)
                         FuncName = Trim(Mid(StrLine, K, InStr(K + 1, StrLine, " ") - K))
                         
@@ -485,22 +524,22 @@ Private Sub cmdRemove_Click(Index As Integer)
     TText = txtResult.Text
     
     If Index = 0 Then
-        If txtResult.SelLength > 0 Then
-            SS = txtResult.SelStart
-            SL = txtResult.SelLength
+        If txtResult.selLength > 0 Then
+            SS = txtResult.selStart
+            SL = txtResult.selLength
             
             SR = InStr(SS + SL - 2, TText, vbNewLine, vbBinaryCompare)
             SS = InStrRev(TText, vbNewLine, SS + 2, vbBinaryCompare)
         Else
-            SS = txtResult.SelStart
+            SS = txtResult.selStart
             
             SR = InStr(SS - 2, TText, vbNewLine, vbBinaryCompare)
             SS = InStrRev(TText, vbNewLine, SS + 2, vbBinaryCompare)
         End If
         
-        txtResult.SelStart = SS
-        txtResult.SelLength = SR - SS
-        SText = txtResult.SelText
+        txtResult.selStart = SS
+        txtResult.selLength = SR - SS
+        SText = txtResult.selText
         
         For Each Q In SConstants
             If InStr(1, SText, Q) > 0 Then SConstants.Remove Q
@@ -534,30 +573,36 @@ Private Sub cmdRemove_Click(Index As Integer)
     UpdateEntries
 End Sub
 
+
+
+Function FileExists(path) As Boolean
+    If Len(path) = 0 Then Exit Function
+  If Dir(path, vbHidden Or vbNormal Or vbReadOnly Or vbSystem) <> "" Then FileExists = True _
+  Else FileExists = False
+End Function
+
 Private Sub Form_Load()
     Dim K
-    APIFileName = Trim(GetSetting("API Add-In For VB", "APIFileName", "FileName", ""))
+    APIFileName = Trim(GetSetting("API Add-In For VB", "APIFileName", "FileName", "Win32api_2.txt"))
     
     chkPublicPrivate(0).Value = Val(GetSetting("API Add-In For VB", "APIFileName", "ConstantsPublic", "1"))
     chkPublicPrivate(1).Value = Val(GetSetting("API Add-In For VB", "APIFileName", "TypesPublic", "1"))
     chkPublicPrivate(2).Value = Val(GetSetting("API Add-In For VB", "APIFileName", "DeclaresPublic", "1"))
     
-    Me.Top = Val(GetSetting("API Add-In For VB", "Pos", "Top", Me.Top))
+    Me.top = Val(GetSetting("API Add-In For VB", "Pos", "Top", Me.top))
     Me.Left = Val(GetSetting("API Add-In For VB", "Pos", "Left", Me.Left))
     Me.Width = Val(GetSetting("API Add-In For VB", "Pos", "Width", Me.Width))
     Me.Height = Val(GetSetting("API Add-In For VB", "Pos", "Height", Me.Height))
-    picHold.Top = Val(GetSetting("API Add-In For VB", "Pos", "Divider", picHold.Top))
+    picHold.top = Val(GetSetting("API Add-In For VB", "Pos", "Divider", picHold.top))
     
     On Error GoTo Err_Exit
-    If APIFileName <> "" Then
-        If Dir(APIFileName) = "" Then APIFileName = ""
-    End If
     
-    If APIFileName = "" Then
+    If Len(APIFileName) = 0 Then APIFileName = App.path & "\Win32api_2.txt"
+    
+    If Not FileExists(APIFileName) Then
         CDialog.Filter = "WIN32API File (*.txt)|*.txt"
         CDialog.FileName = "WIN32API.TXT"
         CDialog.ShowOpen
-        
         APIFileName = CDialog.FileName
     End If
     
@@ -569,7 +614,12 @@ Private Sub Form_Load()
     End If
     
     cmbType.ListIndex = 2
-    Connect.Show
+    
+    #If Not STANDALONE Then
+        Connect.Show
+    #Else
+        Me.Visible = True
+    #End If
     
     Exit Sub
 Err_Exit:
@@ -581,11 +631,16 @@ Err_Exit:
         End If
     Next K
     
-    Connect.Show
+    #If Not STANDALONE Then
+        Connect.Show
+    #Else
+        Me.Visible = True
+    #End If
+    
     Exit Sub
 End Sub
 
-Private Sub Form_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub Form_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
     Debug.Print "MouseMove"
 End Sub
 
@@ -619,11 +674,11 @@ Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
         SDeclares.Remove 1
     Loop
     
-    SaveSetting "API Add-In For VB", "Pos", "Top", Me.Top
+    SaveSetting "API Add-In For VB", "Pos", "Top", Me.top
     SaveSetting "API Add-In For VB", "Pos", "Left", Me.Left
     SaveSetting "API Add-In For VB", "Pos", "Width", Me.Width
     SaveSetting "API Add-In For VB", "Pos", "Height", Me.Height
-    SaveSetting "API Add-In For VB", "Pos", "Divider", picHold.Top
+    SaveSetting "API Add-In For VB", "Pos", "Divider", picHold.top
     
     SaveSetting "API Add-In For VB", "APIFileName", "FileName", APIFileName
     
@@ -644,19 +699,19 @@ Private Sub Form_Resize()
     OKButton.Move ScaleWidth - OKButton.Width - 50, ScaleHeight - OKButton.Height - 50
     CancelButton.Move OKButton.Left - CancelButton.Width - 50, ScaleHeight - CancelButton.Height - 50
     
-    lblEntriesFound.Top = ScaleHeight - lblEntriesFound.Height - 100
+    lblEntriesFound.top = ScaleHeight - lblEntriesFound.Height - 100
     
-    If picHold.Top > ScaleHeight - 2000 Then
+    If picHold.top > ScaleHeight - 2000 Then
         If ScaleHeight - 2000 > 1500 Then
-            picHold.Top = ScaleHeight - 2000
+            picHold.top = ScaleHeight - 2000
         Else
-            picHold.Top = 1500
+            picHold.top = 1500
         End If
     End If
     
-    lstFindResult.Height = picHold.Top - lstFindResult.Top
-    txtResult.Top = picHold.Top + picHold.Height
-    txtResult.Height = OKButton.Top - txtResult.Top - 50
+    lstFindResult.Height = picHold.top - lstFindResult.top
+    txtResult.top = picHold.top + picHold.Height
+    txtResult.Height = OKButton.top - txtResult.top - 50
     
     If picHold.ScaleWidth / 2 > 4800 Then
         imgMove.Left = picHold.ScaleWidth / 2
@@ -697,46 +752,51 @@ Private Sub imgOpen_Click()
     cmbType.ListIndex = 0
     UpdateEntries
     
-    Connect.Show
+    #If Not STANDALONE Then
+        Connect.Show
+    #Else
+        Me.Visible = True
+    #End If
+    
     Exit Sub
 Err_Exit:
     Err.Clear
     Exit Sub
 End Sub
 
-Private Sub imgMove_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub imgMove_MouseDown(Button As Integer, Shift As Integer, x As Single, Y As Single)
     PY = Y
 End Sub
 
-Private Sub imgMove_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub imgMove_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
     If Button <> 0 And PY <> 0 Then
-        If (picHold.Top - (PY - Y)) < 1500 Then
-            picHold.Top = 1500
-        ElseIf (picHold.Top - (PY - Y)) > ScaleHeight - 2000 Then
-            picHold.Top = ScaleHeight - 2000
+        If (picHold.top - (PY - Y)) < 1500 Then
+            picHold.top = 1500
+        ElseIf (picHold.top - (PY - Y)) > ScaleHeight - 2000 Then
+            picHold.top = ScaleHeight - 2000
         Else
-            picHold.Top = picHold.Top - (PY - Y)
+            picHold.top = picHold.top - (PY - Y)
         End If
         
-        lstFindResult.Height = picHold.Top - lstFindResult.Top
-        txtResult.Top = picHold.Top + picHold.Height
-        txtResult.Height = OKButton.Top - txtResult.Top - 50
+        lstFindResult.Height = picHold.top - lstFindResult.top
+        txtResult.top = picHold.top + picHold.Height
+        txtResult.Height = OKButton.top - txtResult.top - 50
     End If
 End Sub
 
-Private Sub imgMove_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub imgMove_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As Single)
     PY = 0
 End Sub
 
-Private Sub imgMove2_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-    imgMove_MouseDown Button, Shift, X, imgMove2.Top + Y
+Private Sub imgMove2_MouseDown(Button As Integer, Shift As Integer, x As Single, Y As Single)
+    imgMove_MouseDown Button, Shift, x, imgMove2.top + Y
 End Sub
 
-Private Sub imgMove2_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-    imgMove_MouseMove Button, Shift, X, imgMove2.Top + Y
+Private Sub imgMove2_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
+    imgMove_MouseMove Button, Shift, x, imgMove2.top + Y
 End Sub
 
-Private Sub imgMove2_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub imgMove2_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As Single)
     imgMove_MouseUp 0, 0, 0, 0
 End Sub
 
@@ -761,14 +821,22 @@ Private Sub lstFindResult_DblClick()
 End Sub
 
 Private Sub OKButton_Click()
-    Me.VBInstance.ActiveCodePane.CodeModule.AddFromString txtResult.Text
+
+    #If Not STANDALONE Then
+        Me.VBInstance.ActiveCodePane.CodeModule.AddFromString txtResult.Text
+        Unload Me
+        Connect.Hide
+    #Else
+        Clipboard.Clear
+        Clipboard.SetText txtResult.Text
+    #End If
     
-    Unload Me
-    Connect.Hide
+    
 End Sub
 
 Private Sub txtFind_Change()
     cmdFind.Enabled = cmbType.ListIndex <> -1 And txtFind.Text <> "" And APIFileName <> ""
+    'If cmdFind.Enabled Then cmdFind_Click 'will this be to slow
 End Sub
 
 Private Sub txtFind_KeyPress(KeyAscii As Integer)
@@ -808,6 +876,7 @@ End Sub
 
 Private Sub txtResult_Change()
     OKButton.Enabled = txtResult.Text <> ""
+    modSyntaxHighlighting.SyntaxHighlight txtResult, True
 End Sub
 
 Public Sub UpdateEntries()
@@ -844,7 +913,7 @@ Public Sub GetTypes(TypesCol As Collection, ByVal DeclareStr As String)
 End Sub
 
 Public Sub AddTypes(TypesCol As Collection, PP As String)
-    Dim StrFile As String, FNum As Integer, K As Long, Q As Long, I As Integer
+    Dim StrFile As String, FNum As Integer, K As Long, Q As Long, i As Integer
     Dim StrType As String
     
     If TypesCol.Count = 0 Then Exit Sub
@@ -856,10 +925,10 @@ Public Sub AddTypes(TypesCol As Collection, PP As String)
     Close FNum
     
     Do
-        I = I + 1
-        K = InStr(1, StrFile, vbNewLine & "Type " & TypesCol(I), vbTextCompare) + 2
-        If K = 2 Then K = InStr(1, StrFile, vbNewLine & "Private Type " & TypesCol(I), vbTextCompare) + 2
-        If K = 2 Then K = InStr(1, StrFile, vbNewLine & "Public Type " & TypesCol(I), vbTextCompare) + 2
+        i = i + 1
+        K = InStr(1, StrFile, vbNewLine & "Type " & TypesCol(i), vbTextCompare) + 2
+        If K = 2 Then K = InStr(1, StrFile, vbNewLine & "Private Type " & TypesCol(i), vbTextCompare) + 2
+        If K = 2 Then K = InStr(1, StrFile, vbNewLine & "Public Type " & TypesCol(i), vbTextCompare) + 2
         
         If K > 2 Then
             Q = InStr(K + 5, StrFile, "End Type", vbTextCompare) + 8
@@ -899,5 +968,5 @@ Public Sub AddTypes(TypesCol As Collection, PP As String)
                 Next TLine
             End If
         End If
-    Loop Until I = TypesCol.Count
+    Loop Until i = TypesCol.Count
 End Sub
