@@ -21,3 +21,8 @@ A video walkthrough of the addin is available here:
 http://www.youtube.com/embed/bLfvaYNIhzk?list=UUhIoXVvn4ViA3AL4FJW8Yzw
 
 Also shows how to hook into pre-existing IDE button events from a vb6 addin.
+
+the 3 new sub folders in here..they used to be addins but I am going to 
+compile them as standalone now and just use FastBuild to add theier menu items
+to launch the external exes. none of them depend on being an addin really on
+thier own and the less junk loaded in teh IDE the better

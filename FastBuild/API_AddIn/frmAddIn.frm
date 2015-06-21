@@ -14,6 +14,7 @@ Begin VB.Form frmAddIn
    MinButton       =   0   'False
    ScaleHeight     =   7920
    ScaleWidth      =   9930
+   StartUpPosition =   2  'CenterScreen
    Begin RichTextLib.RichTextBox txtResult 
       Height          =   2655
       Left            =   60
@@ -583,7 +584,7 @@ End Function
 
 Private Sub Form_Load()
     Dim K
-    APIFileName = Trim(GetSetting("API Add-In For VB", "APIFileName", "FileName", "Win32api_2.txt"))
+    'APIFileName = Trim(GetSetting("API Add-In For VB", "APIFileName", "FileName", "Win32api_2.txt"))
     
     chkPublicPrivate(0).Value = Val(GetSetting("API Add-In For VB", "APIFileName", "ConstantsPublic", "1"))
     chkPublicPrivate(1).Value = Val(GetSetting("API Add-In For VB", "APIFileName", "TypesPublic", "1"))
@@ -602,6 +603,7 @@ Private Sub Form_Load()
     If Not FileExists(APIFileName) Then
         CDialog.Filter = "WIN32API File (*.txt)|*.txt"
         CDialog.FileName = "WIN32API.TXT"
+        CDialog.DialogTitle = App.path
         CDialog.ShowOpen
         APIFileName = CDialog.FileName
     End If

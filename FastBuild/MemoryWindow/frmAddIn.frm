@@ -10,7 +10,7 @@ Begin VB.Form frmAddIn
    LinkTopic       =   "Form1"
    ScaleHeight     =   4560
    ScaleWidth      =   9810
-   StartUpPosition =   3  'Windows Default
+   StartUpPosition =   2  'CenterScreen
    Begin VB.CheckBox Check1 
       Caption         =   "Top Most"
       Height          =   285
@@ -495,7 +495,24 @@ Private Sub Form_Load()
     cboType.ListIndex = 0
     DontReact = False
         
-    hProcess = OpenProcess(PROCESS_VM_READ, False, GetCurrentProcessId())
+    #If IS_ADDIN Then
+        hProcess = OpenProcess(PROCESS_VM_READ, False, GetCurrentProcessId())
+    #Else
+        Dim pid As Long
+        Dim tmp As String
+    
+        If Len(Command) > 0 Then
+            If InStr(Command, "/pid:") > 0 Then
+                tmp = Replace(Command, "/pid:", Empty)
+                If IsNumeric(tmp) Then
+                    pid = CLng(tmp)
+                    Me.Caption = Me.Caption & "  pid:" & pid
+                    hProcess = OpenProcess(PROCESS_VM_READ, False, pid)
+                End If
+            End If
+        End If
+                    
+    #End If
          
     If IsIde() Then
         Text1 = "0x" & Hex(h)

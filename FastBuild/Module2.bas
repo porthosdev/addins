@@ -1,9 +1,15 @@
 Attribute VB_Name = "Module2"
 Public LastCommandOutput As String
 Public VBInstance As VBIDE.VBE
-Public Connect As Connect
+'Public Connect As Connect
 Public ClearImmediateOnStart As Long
 Public ShowPostBuildOutput As Long
+
+Public MemWindowExe As String
+Public CodeDBExe As String
+Public APIAddInExe As String
+
+Public Declare Function GetCurrentProcessId Lib "kernel32" () As Long
 
     Private Const OFN_ALLOWMULTISELECT = &H200
     Private Const OFN_CREATEPROMPT = &H2000

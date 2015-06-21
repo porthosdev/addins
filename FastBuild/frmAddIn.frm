@@ -277,10 +277,17 @@ Attribute VB_Exposed = False
 ' Author: David Zimmer
 ' Site:   http://sandsprite.com
 '
+Dim loaded As Boolean
 
 Private Sub chkClearImmediate_Click()
+    
     ClearImmediateOnStart = chkClearImmediate.value
     SaveSetting "fastbuild", "settings", "ClearImmediateOnStart", chkClearImmediate.value
+    
+    If loaded And ClearImmediateOnStart = 1 Then
+        MsgBox "Change takes effect next time to start IDE"
+    End If
+    
 End Sub
 
 Private Sub chkShowPostBuildOutput_Click()
@@ -356,6 +363,7 @@ Private Sub Form_Load()
     chkShowPostBuildOutput.value = ShowPostBuildOutput
     
     txtPostBuild = GetPostBuildCommand
+    loaded = True
     
      txtAbout = "Build Path once set will be used from then on out automatically as default" & vbCrLf & _
                 "and you will no longer be prompted every single time you want to generate the " & vbCrLf & _

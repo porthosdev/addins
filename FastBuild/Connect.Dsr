@@ -1,11 +1,11 @@
 VERSION 5.00
 Begin {AC0714F6-3D04-11D1-AE7D-00A0C90F26F4} Connect 
-   ClientHeight    =   11325
+   ClientHeight    =   10035
    ClientLeft      =   1740
    ClientTop       =   1545
-   ClientWidth     =   17535
-   _ExtentX        =   30930
-   _ExtentY        =   19976
+   ClientWidth     =   15435
+   _ExtentX        =   27226
+   _ExtentY        =   17701
    _Version        =   393216
    Description     =   "Streamline Build Process"
    DisplayName     =   "Fast Build"
@@ -34,8 +34,7 @@ Option Explicit
 'also would be nice to be able to write postbuild command output to debug window..but havent found way yet..
 
 Private FormDisplayed           As Boolean
-Private VBInstance              As VBIDE.VBE
-Dim mfrmAddIn                   As New frmAddIn
+Dim mfrmAddIn                   As frmAddIn
 
 Dim mcbFastBuildUI                As Office.CommandBarControl
 Private WithEvents mnuFastBuildUI As CommandBarEvents
@@ -64,14 +63,28 @@ Dim mcbAddFiles                As Office.CommandBarControl
 Private WithEvents mnuAddFiles As CommandBarEvents
 Attribute mnuAddFiles.VB_VarHelpID = -1
 
+Dim mcbMemWindow                As Office.CommandBarControl
+Private WithEvents mnuMemWindow As CommandBarEvents
+Attribute mnuMemWindow.VB_VarHelpID = -1
+
+Dim mcbCodeDB                As Office.CommandBarControl
+Private WithEvents mnuCodeDB As CommandBarEvents
+Attribute mnuCodeDB.VB_VarHelpID = -1
+
+Dim mcbApiAddin                   As Office.CommandBarControl
+Private WithEvents mnuApiAddin As CommandBarEvents
+Attribute mnuApiAddin.VB_VarHelpID = -1
+
 
 Dim mcbRealMakeMenu As Office.CommandBarControl
 'Private WithEvents mnuMake As CommandBarEvents 'we could hook into its events here if we wanted..
 
 'vb6 ide bug..if you hold a reference to an existing button in an addin..it will disable the button
 'when you enter the run state as if it was owned by the addin..just use f5 or runstart button then..
-Dim mcbRealStartButton As Office.CommandBarControl
-Private WithEvents mnuRealRun As CommandBarEvents 'hook into existing controls events
+'maybe I can switch to using a hooklib to hook it at a lower level so this bug manifest. I have a 20yr habit of
+'pressing that stupid run arrow rather than reaching for the f5 key everytime.. no one will like this..
+Public mcbRealStartButton As Office.CommandBarControl
+Public WithEvents mnuRealRun As CommandBarEvents 'hook into existing controls events
 Attribute mnuRealRun.VB_VarHelpID = -1
 
 
@@ -112,11 +125,12 @@ End Sub
 'this method adds the Add-In to VB
 '------------------------------------------------------
 Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal ConnectMode As AddInDesignerObjects.ext_ConnectMode, ByVal AddInInst As Object, custom() As Variant)
-    On Error Resume Next
+    'On Error Resume Next
     
     'save the vb instance
-    Set VBInstance = Application
-    
+    If VBInstance Is Nothing Then Set VBInstance = Application
+    'If Connect Is Nothing Then Set Module2.Connect = Me
+        
     'this is a good place to set a breakpoint and
     'test various addin objects, properties and methods
     Debug.Print "FullName: " & VBInstance.FullName
@@ -126,40 +140,78 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
         Me.Show
     Else
     
-        ClearImmediateOnStart = GetSetting("fastbuild", "settings", "ClearImmediateOnStart", 1)
+        MemWindowExe = App.path & "\MemoryWindow\standalone.exe"
+        CodeDBExe = App.path & "\CodeDB\CodeDB.exe"
+        APIAddInExe = App.path & "\API_AddIn\API_AddIn.exe"
+        
+        ClearImmediateOnStart = GetSetting("fastbuild", "settings", "ClearImmediateOnStart", 0)
         ShowPostBuildOutput = GetSetting("fastbuild", "settings", "ShowPostBuildOutput", 1)
         
         Set mcbFastBuildUI = AddButton("Fast Build", 101) 'AddToAddInCommandBar("Fast Build")
-        Set mnuFastBuildUI = VBInstance.Events.CommandBarEvents(mcbFastBuildUI)
-               
-        Set mcbExecute = AddButton("Execute", 102)
-        Set mnuExecute = VBInstance.Events.CommandBarEvents(mcbExecute)
- 
-        Set mcbImmediate = AddButton("Clear Immediate Window", 104)
-        Set mnuImmediate = VBInstance.Events.CommandBarEvents(mcbImmediate)
-
-        Set mcbAddref = AddrefMenu("Quick AddRef")
-        Set mnuAddref = VBInstance.Events.CommandBarEvents(mcbAddref)
+        If Not mcbFastBuildUI Is Nothing Then
+            Set mnuFastBuildUI = VBInstance.Events.CommandBarEvents(mcbFastBuildUI)
+        End If
         
-        Set mcbAddFiles = AddrefMenu("Add Multiple Files", "")
-        Set mnuAddFiles = VBInstance.Events.CommandBarEvents(mcbAddFiles)
-
+        Set mcbExecute = AddButton("Execute", 102)
+        If Not mcbExecute Is Nothing Then
+            Set mnuExecute = VBInstance.Events.CommandBarEvents(mcbExecute)
+        End If
+        
+        Set mcbImmediate = AddButton("Clear Immediate Window", 104)
+        If Not mcbImmediate Is Nothing Then
+            Set mnuImmediate = VBInstance.Events.CommandBarEvents(mcbImmediate)
+        End If
+        
+        Set mcbAddref = AddrefMenu("Quick AddRef")
+        If Not mcbAddref Is Nothing Then
+            Set mnuAddref = VBInstance.Events.CommandBarEvents(mcbAddref)
+        End If
+        
+        Set mcbAddFiles = AddrefMenu("Add Multiple Files", "Project", "")
+        If Not mcbAddFiles Is Nothing Then
+            Set mnuAddFiles = VBInstance.Events.CommandBarEvents(mcbAddFiles)
+        End If
+        
+        If FileExists(MemWindowExe) Then
+            Set mcbMemWindow = AddButton("Memory Window", 105)
+            If Not mcbMemWindow Is Nothing Then
+                Set mnuMemWindow = VBInstance.Events.CommandBarEvents(mcbMemWindow)
+            End If
+        End If
+        
+        If FileExists(CodeDBExe) Then
+            Set mcbCodeDB = AddrefMenu("Code-DB", "&Add-Ins", "")
+            If Not mcbCodeDB Is Nothing Then
+                Set mnuCodeDB = VBInstance.Events.CommandBarEvents(mcbCodeDB)
+            End If
+        End If
+        
+        If FileExists(APIAddInExe) Then
+            Set mcbApiAddin = AddrefMenu("Api-Viewer++", "&Add-Ins", "")
+            If Not mcbApiAddin Is Nothing Then
+                Set mnuApiAddin = VBInstance.Events.CommandBarEvents(mcbApiAddin)
+            End If
+        End If
+        
         Set FileEvents = Application.Events.FileControlEvents(Nothing)
         
-        Set mcbRealStartButton = FindRunButton()
-        If Not mcbRealStartButton Is Nothing Then
-            Set mnuRealRun = VBInstance.Events.CommandBarEvents(mcbRealStartButton)
+        'hook the run button events (side effect it will disbale during debugging so you have to use f5..sucky!
+        'we do this to clear immediate window on start which annoyed me too..
+        If ClearImmediateOnStart = 1 Then
+            Set mcbRealStartButton = FindRunButton()
+            If Not mcbRealStartButton Is Nothing Then
+                Set mnuRealRun = VBInstance.Events.CommandBarEvents(mcbRealStartButton)
+            End If
         End If
         
         Set mcbRealMakeMenu = FindMakeMenu()
         If Not mcbRealMakeMenu Is Nothing Then
         '   Set mnuMake = VBInstance.Events.CommandBarEvents(FindMakeMenu) 'hook into the events of an existing menu item..
             Set mcbFastBuild = AddButton("Compile", 103)
-            Set mnuFastBuild = VBInstance.Events.CommandBarEvents(mcbFastBuild)
+            If Not mcbFastBuild Is Nothing Then
+                Set mnuFastBuild = VBInstance.Events.CommandBarEvents(mcbFastBuild)
+            End If
         End If
-        
-        Set Module2.VBInstance = VBInstance
-        Set Module2.Connect = Me
                 
     End If
 
@@ -175,23 +227,66 @@ End Sub
 'this method removes the Add-In from VB
 '------------------------------------------------------
 Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjects.ext_DisconnectMode, custom() As Variant)
-    On Error Resume Next
-        
-    If Not mcbFastBuild Is Nothing Then mcbFastBuild.Delete
-    mcbFastBuildUI.Delete
-    mcbExecute.Delete
-    mcbAddref.Delete
-    mcbImmediate.Delete
+    On Error GoTo hell
+    Dim f As Form
     
-    Unload frmAddRefs
-    Unload mfrmAddIn
-    Set mfrmAddIn = Nothing
-
+    Set FileEvents = Nothing
+    If Not mnuRealRun Is Nothing Then Set mnuRealRun = Nothing
+    If Not mcbRealStartButton Is Nothing Then Set mcbRealStartButton = Nothing
+    
+    If Not mcbFastBuild Is Nothing Then
+        mcbFastBuild.Delete
+        Set mcbFastBuild = Nothing
+    End If
+    
+    If Not mcbFastBuildUI Is Nothing Then
+        mcbFastBuildUI.Delete
+        Set mcbFastBuildUI = Nothing
+    End If
+    
+    If Not mcbExecute Is Nothing Then
+         mcbExecute.Delete
+         Set mcbExecute = Nothing
+    End If
+    
+    If Not mcbAddref Is Nothing Then
+         mcbAddref.Delete
+         Set mcbAddref = Nothing
+    End If
+    
+    If Not mcbImmediate Is Nothing Then
+         mcbImmediate.Delete
+         Set mcbImmediate = Nothing
+    End If
+    
+    If Not mcbApiAddin Is Nothing Then
+         mcbApiAddin.Delete
+         Set mcbApiAddin = Nothing
+    End If
+    
+    If Not mcbMemWindow Is Nothing Then
+         mcbMemWindow.Delete
+         Set mcbMemWindow = Nothing
+    End If
+    
+    If Not mcbCodeDB Is Nothing Then
+         mcbCodeDB.Delete
+         Set mcbCodeDB = Nothing
+    End If
+    
+    If Not mfrmAddIn Is Nothing Then Set mfrmAddIn = Nothing
+    
+    For Each f In Forms
+        Unload f
+    Next
+    
     'release all references so object can shut down and remove itself..
     'otherwise you wont be able to unload and compile, you will have to restart ide
-    Set Module2.VBInstance = Nothing
-    Set Module2.Connect = Nothing
     Set VBInstance = Nothing
+
+Exit Sub
+hell:
+    MsgBox "FastBuild.AddinInstance_OnDisconnection error: " & Err.Description
     
 End Sub
 
@@ -292,6 +387,24 @@ Private Sub mnuAddref_Click(ByVal CommandBarControl As Object, handled As Boolea
     frmAddRefs.Show
 End Sub
 
+Private Sub mnuApiAddin_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    On Error Resume Next
+    If FileExists(APIAddInExe) Then
+        Shell APIAddInExe, vbNormalFocus
+    Else
+        MsgBox "File not found: " & APIAddInExe
+    End If
+End Sub
+
+Private Sub mnuCodeDB_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    On Error Resume Next
+    If FileExists(CodeDBExe) Then
+        Shell CodeDBExe, vbNormalFocus
+    Else
+        MsgBox "File not found: " & CodeDBExe
+    End If
+End Sub
+
 Private Sub mnuFastBuildUI_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
     Me.Show
 End Sub
@@ -347,34 +460,37 @@ Private Sub mnuExecute_Click(ByVal CommandBarControl As Object, handled As Boole
 End Sub
 
 
-Private Function AddToAddInCommandBar(sCaption As String) As Office.CommandBarControl
-    Dim cbMenuCommandBar As Office.CommandBarControl
-    Dim cbMenu As Object
-
-    On Error GoTo hell
-
-    Set cbMenu = VBInstance.CommandBars("Add-Ins")
-    If cbMenu Is Nothing Then Exit Function
-
-    Set cbMenuCommandBar = cbMenu.Controls.Add(1)
-    cbMenuCommandBar.caption = sCaption
-    Set AddToAddInCommandBar = cbMenuCommandBar
-
-    Exit Function
-hell:
-End Function
+'Private Function AddToAddInCommandBar(sCaption As String) As Office.CommandBarControl
+'    Dim cbMenuCommandBar As Office.CommandBarControl
+'    Dim cbMenu As Object
+'
+'    On Error GoTo hell
+'
+'    Set cbMenu = VBInstance.CommandBars("Add-Ins")
+'    If cbMenu Is Nothing Then Exit Function
+'
+'    Set cbMenuCommandBar = cbMenu.Controls.Add(1)
+'    cbMenuCommandBar.caption = sCaption
+'    Set AddToAddInCommandBar = cbMenuCommandBar
+'
+'    Exit Function
+'hell:
+'End Function
 
 Private Function AddButton(caption As String, resImg As Long) As Office.CommandBarControl
     Dim cbMenu As Object
     Dim orgData As String
+    Dim i As Long
     
     On Error Resume Next
-    
+    If VBInstance.CommandBars.Count = 0 Then VBInstance.CommandBars.Add
+    If VBInstance.CommandBars.Count >= 2 Then i = 2 Else i = 1
+
     orgData = Clipboard.GetText
     Clipboard.Clear
     
-    VBInstance.CommandBars(2).Visible = True
-    Set cbMenu = VBInstance.CommandBars(2).Controls.Add(1) ', , , VBInstance.CommandBars(2).Controls.Count)
+    VBInstance.CommandBars(i).Visible = True
+    Set cbMenu = VBInstance.CommandBars(i).Controls.Add(1) ', , , VBInstance.CommandBars(2).Controls.Count)
     cbMenu.caption = caption
     Clipboard.SetData LoadResPicture(resImg, 0)
     cbMenu.PasteFace
@@ -405,7 +521,7 @@ Private Function FindRunButton() As Office.CommandBarControl
     
 End Function
 
-Private Function AddrefMenu(caption As String, Optional afterItem = "Refere&nces...") As Office.CommandBarControl
+Private Function AddrefMenu(caption As String, Optional menuName As String = "Project", Optional afterItem = "Refere&nces...") As Office.CommandBarControl
 
     Dim cbProjMenu As Office.CommandBarControl
     Dim cbSubMenu As Office.CommandBarControl
@@ -413,7 +529,7 @@ Private Function AddrefMenu(caption As String, Optional afterItem = "Refere&nces
     
     On Error GoTo hell
 
-    Set cbProjMenu = VBInstance.CommandBars(1).Controls("Project")   'menu bar is always first command bar
+    Set cbProjMenu = VBInstance.CommandBars(1).Controls(menuName)   'menu bar is always first command bar
     
     If cbProjMenu Is Nothing Then Exit Function
 
@@ -424,7 +540,7 @@ Private Function AddrefMenu(caption As String, Optional afterItem = "Refere&nces
         Next
         If i = cbProjMenu.Controls.Count Then Exit Function
     Else
-        i = -1
+        i = -1 'else add it as first sub menu item..
     End If
 
     Set AddrefMenu = cbProjMenu.Controls.Add(, , , i + 2) 'add the menu before the References ... menu
@@ -496,6 +612,15 @@ End Sub
 
 Private Sub mnuMake_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
     MsgBox "user clicked existing make menu!"
+End Sub
+
+Private Sub mnuMemWindow_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+    On Error Resume Next
+    If FileExists(MemWindowExe) Then
+        Shell MemWindowExe & " /pid:" & GetCurrentProcessId(), vbNormalFocus
+    Else
+        MsgBox "File not found: " & MemWindowExe
+    End If
 End Sub
 
 Private Sub mnuRealRun_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
