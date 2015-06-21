@@ -1,11 +1,11 @@
 VERSION 5.00
 Begin {AC0714F6-3D04-11D1-AE7D-00A0C90F26F4} Connect 
-   ClientHeight    =   9900
+   ClientHeight    =   12600
    ClientLeft      =   1740
    ClientTop       =   1545
-   ClientWidth     =   6585
-   _ExtentX        =   11615
-   _ExtentY        =   17463
+   ClientWidth     =   14865
+   _ExtentX        =   26220
+   _ExtentY        =   22225
    _Version        =   393216
    Description     =   "Displays Raw Memory"
    DisplayName     =   "Memory Window"
@@ -150,8 +150,18 @@ Private Function Addit() As Office.CommandBarControl
     orgData = Clipboard.GetText
     Clipboard.Clear
     
-    VBInstance.CommandBars(2).Visible = True
-    Set cbMenu = VBInstance.CommandBars(2).Controls.Add(1, , , VBInstance.CommandBars(2).Controls.Count)
+    Dim ci As Long
+    ci = VBInstance.CommandBars.Count
+    
+    If ci = 0 Then
+        MsgBox "No Command Bars?", vbInformation, "MemoryWindow Addin"
+        VBInstance.CommandBars.Add
+    End If
+    
+    If ci > 2 Then ci = 2 Else ci = 1
+    
+    VBInstance.CommandBars(ci).Visible = True
+    Set cbMenu = VBInstance.CommandBars(ci).Controls.Add(1, , , VBInstance.CommandBars(2).Controls.Count)
     cbMenu.Caption = "Memory"
     Clipboard.SetData LoadResPicture(101, 0)
     cbMenu.PasteFace
