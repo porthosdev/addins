@@ -40,3 +40,5 @@ IndenterVB6.exe - Office Automation Ltd - V3.5 - 2.10.2005
 SideBySideActX - 3 different open source tools and a couple articles for generating
   manifests so you can use your COM dependancies registration free. XPSP2 and up
   (how in the world did I never know about this until now!)
+
+API_Add-In  - CVMichael - 2.3.2004 - replacement API viewer w/mods (soon to be)
