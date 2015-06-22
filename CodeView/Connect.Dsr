@@ -33,7 +33,6 @@ Attribute MenuHandler2.VB_VarHelpID = -1
 
 Public WithEvents ComponentHandler As VBComponentsEvents
 Attribute ComponentHandler.VB_VarHelpID = -1
-'Public WithEvents ProjectHandler As VBProjectsEvents
 
 Dim mToolCodeView As ToolCodeView
 Dim wToolCodeView As VBIDE.Window
@@ -69,10 +68,9 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
          End If
     
 4        Set ComponentHandler = g_VBInstance.Events.VBComponentsEvents(Nothing)
-5        'Set ProjectHandler = g_VBInstance.Events.VBProjectsEvents()
+6        Set wToolCodeView = g_VBInstance.Windows.CreateToolWindow(AddInInst, "CodeView.ToolCodeView", "CodeView", GuidCodeView, mToolCodeView)
+11       Me.Show
 
-6         Set wToolCodeView = g_VBInstance.Windows.CreateToolWindow(AddInInst, "CodeView.ToolCodeView", "CodeView", GuidCodeView, mToolCodeView)
-11         Me.Show
     End If
      
     Exit Sub
@@ -88,18 +86,16 @@ Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjec
 '    If Not mcbMenuCommandBar Is Nothing Then
 '        mcbMenuCommandBar.Delete
 '        Set mcbMenuCommandBar = Nothing
+'        If Not MenuHandler  Is Nothing Then Set MenuHandler = Nothing
 '    End If
     
     If Not mcbMenuCommandBar2 Is Nothing Then
         mcbMenuCommandBar2.Delete
         Set mcbMenuCommandBar2 = Nothing
+        If Not MenuHandler2 Is Nothing Then Set MenuHandler2 = Nothing
     End If
-        
-    'If Not ProjectHandler Is Nothing Then Set ProjectHandler = Nothing
-    'If Not MenuHandler Is Nothing Then Set MenuHandler = Nothing
-    
+
     If Not ComponentHandler Is Nothing Then Set ComponentHandler = Nothing
-    If Not MenuHandler2 Is Nothing Then Set MenuHandler2 = Nothing
     If Not mToolCodeView Is Nothing Then Set mToolCodeView = Nothing
     If Not g_VBInstance Is Nothing Then Set g_VBInstance = Nothing
     If Not wToolCodeView Is Nothing Then Set wToolCodeView = Nothing
@@ -117,6 +113,11 @@ End Sub
 
 Private Sub IDTExtensibility_OnStartupComplete(custom() As Variant)
     '
+End Sub
+
+Private Sub ComponentHandler_ItemRemoved(ByVal VBComponent As VBIDE.VBComponent)
+    Set mToolCodeView.ActiveCodeModule = Nothing
+    mToolCodeView.InitCodeView
 End Sub
 
 Private Sub ComponentHandler_ItemSelected(ByVal VBComponent As VBIDE.VBComponent)
@@ -151,18 +152,17 @@ Private Sub MenuHandler2_Click(ByVal CommandBarControl As Object, handled As Boo
     frmFindAll.Show
 End Sub
 
-
-
 Function AddToAddInCommandBar(sCaption As String, Optional menuName As String = "Add-Ins") As Office.CommandBarControl
-    Dim cbMenuCommandBar As Office.CommandBarControl
+    Dim cbMenuCommandBar  As Office.CommandBarControl
     Dim cbMenu As Object
-  
+    Dim ctl As CommandBarControls
+    
     On Error GoTo AddToAddInCommandBarErr
     Set cbMenu = g_VBInstance.CommandBars(menuName)
     
     If cbMenu Is Nothing Then Exit Function
-    
-    Set cbMenuCommandBar = cbMenu.Controls.Add(1)
+    Set ctl = cbMenu.Controls
+    Set cbMenuCommandBar = ctl.Add(, , , 1)
     cbMenuCommandBar.Caption = sCaption
     Set AddToAddInCommandBar = cbMenuCommandBar
     
@@ -171,7 +171,3 @@ Function AddToAddInCommandBar(sCaption As String, Optional menuName As String = 
 AddToAddInCommandBarErr:
 End Function
 
-'Private Sub ProjectHandler_ItemRemoved(ByVal VBProject As VBIDE.VBProject)
-'    Set mToolCodeView.ActiveCodeModule = Nothing
-'    Set mToolCodeView.CurMod = Nothing
-'End Sub

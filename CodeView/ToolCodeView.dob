@@ -308,7 +308,7 @@ Sub Reload(Optional NewModule As CodeModule)
     Dim curProj As String
     
     On Error Resume Next
-    
+            
     If Not initilized Then InitCodeView
     
     curProj = g_VBInstance.ActiveVBProject.Name
