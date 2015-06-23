@@ -82,9 +82,8 @@ Dim mcbRealMakeMenu As Office.CommandBarControl
 'when you enter the run state as if it was owned by the addin..just use f5 or runstart button then..
 'maybe I can switch to using a hooklib to hook it at a lower level so this bug manifest. I have a 20yr habit of
 'pressing that stupid run arrow rather than reaching for the f5 key everytime.. no one will like this..
-Public mcbRealStartButton As Office.CommandBarControl
-Public WithEvents mnuRealRun As CommandBarEvents 'hook into existing controls events
-Attribute mnuRealRun.VB_VarHelpID = -1
+'Public mcbRealStartButton As Office.CommandBarControl
+'Public WithEvents mnuRealRun As CommandBarEvents 'hook into existing controls events
 
 
 Sub Hide()
@@ -156,11 +155,6 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
             Set mnuExecute = VBInstance.Events.CommandBarEvents(mcbExecute)
         End If
         
-        Set mcbImmediate = AddButton("Clear Immediate Window", 104)
-        If Not mcbImmediate Is Nothing Then
-            Set mnuImmediate = VBInstance.Events.CommandBarEvents(mcbImmediate)
-        End If
-        
         Set mcbAddref = AddrefMenu("Quick AddRef")
         If Not mcbAddref Is Nothing Then
             Set mnuAddref = VBInstance.Events.CommandBarEvents(mcbAddref)
@@ -199,12 +193,12 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
         
         'hook the run button events (side effect it will disbale during debugging so you have to use f5..sucky!
         'we do this to clear immediate window on start which annoyed me too..
-        If ClearImmediateOnStart = 1 Then
-            Set mcbRealStartButton = FindRunButton()
-            If Not mcbRealStartButton Is Nothing Then
-                Set mnuRealRun = VBInstance.Events.CommandBarEvents(mcbRealStartButton)
-            End If
-        End If
+'        If ClearImmediateOnStart = 1 Then
+'            Set mcbRealStartButton = FindRunButton()
+'            If Not mcbRealStartButton Is Nothing Then
+'                Set mnuRealRun = VBInstance.Events.CommandBarEvents(mcbRealStartButton)
+'            End If
+'        End If
 
         Set mcbRealMakeMenu = FindMakeMenu()
         
@@ -213,6 +207,10 @@ Private Sub AddinInstance_OnConnection(ByVal Application As Object, ByVal Connec
                 Set mnuFastBuild = VBInstance.Events.CommandBarEvents(mcbFastBuild)
         End If
         
+        Set mcbImmediate = AddButton("Start and Clear Immediate", 104)
+        If Not mcbImmediate Is Nothing Then
+            Set mnuImmediate = VBInstance.Events.CommandBarEvents(mcbImmediate)
+        End If
                 
     End If
 
@@ -239,8 +237,8 @@ Private Sub AddinInstance_OnDisconnection(ByVal RemoveMode As AddInDesignerObjec
     If Not FileEvents Is Nothing Then Set FileEvents = Nothing
     If Not mcbRealMakeMenu Is Nothing Then Set mcbRealMakeMenu = Nothing
     
-    If Not mnuRealRun Is Nothing Then Set mnuRealRun = Nothing
-    If Not mcbRealStartButton Is Nothing Then Set mcbRealStartButton = Nothing
+    'If Not mnuRealRun Is Nothing Then Set mnuRealRun = Nothing
+    'If Not mcbRealStartButton Is Nothing Then Set mcbRealStartButton = Nothing
     
     If Not mcbFastBuild Is Nothing Then
         mcbFastBuild.Delete
@@ -527,24 +525,24 @@ hell:
     
 End Function
 
-Private Function FindRunButton() As Office.CommandBarControl
-    
-    Dim cbToolbar As Office.CommandBar
-    Dim cbSubMenu As Office.CommandBarControl
-    
-    For Each cbToolbar In VBInstance.CommandBars
-        'Debug.Print "Toolbar: " & cbToolbar.Index
-        'If cbToolbar.Index = 17 Then Stop
-        For Each cbSubMenu In cbToolbar.Controls
-            'Debug.Print vbTab & cbSubMenu.caption
-            If cbSubMenu.caption = "&Start" Then
-                Set FindRunButton = cbSubMenu
-                Exit Function
-            End If
-        Next
-    Next
-    
-End Function
+'Private Function FindRunButton() As Office.CommandBarControl
+'
+'    Dim cbToolbar As Office.CommandBar
+'    Dim cbSubMenu As Office.CommandBarControl
+'
+'    For Each cbToolbar In VBInstance.CommandBars
+'        'Debug.Print "Toolbar: " & cbToolbar.Index
+'        'If cbToolbar.Index = 17 Then Stop
+'        For Each cbSubMenu In cbToolbar.Controls
+'            'Debug.Print vbTab & cbSubMenu.caption
+'            If cbSubMenu.caption = "&Start" Then
+'                Set FindRunButton = cbSubMenu
+'                Exit Function
+'            End If
+'        Next
+'    Next
+'
+'End Function
 
 Private Function AddrefMenu(caption As String, Optional menuName As String = "&Project", Optional afterItem = "Refere&nces...") As Office.CommandBarControl
 
@@ -618,6 +616,7 @@ End Function
 
 Private Sub mnuImmediate_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
     ClearImmediateWindow
+    SendKeys "{F5}", True
 End Sub
 
 Sub ClearImmediateWindow()
@@ -661,8 +660,8 @@ Private Sub mnuMemWindow_Click(ByVal CommandBarControl As Object, handled As Boo
     End If
 End Sub
 
-Private Sub mnuRealRun_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
-    If ClearImmediateOnStart = 1 Then
-        mnuImmediate_Click CommandBarControl, handled, CancelDefault
-    End If
-End Sub
+'Private Sub mnuRealRun_Click(ByVal CommandBarControl As Object, handled As Boolean, CancelDefault As Boolean)
+'    If ClearImmediateOnStart = 1 Then
+'        mnuImmediate_Click CommandBarControl, handled, CancelDefault
+'    End If
+'End Sub

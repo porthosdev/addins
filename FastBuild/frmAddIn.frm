@@ -61,6 +61,7 @@ Begin VB.Form frmAddIn
       Left            =   4275
       TabIndex        =   14
       Top             =   1305
+      Visible         =   0   'False
       Width           =   2715
    End
    Begin VB.CommandButton Command2 
@@ -279,16 +280,16 @@ Attribute VB_Exposed = False
 '
 Dim loaded As Boolean
 
-Private Sub chkClearImmediate_Click()
-    
-    ClearImmediateOnStart = chkClearImmediate.value
-    SaveSetting "fastbuild", "settings", "ClearImmediateOnStart", chkClearImmediate.value
-    
-    If loaded And ClearImmediateOnStart = 1 Then
-        MsgBox "Change takes effect next time to start IDE"
-    End If
-    
-End Sub
+'Private Sub chkClearImmediate_Click()
+'
+'    ClearImmediateOnStart = chkClearImmediate.value
+'    SaveSetting "fastbuild", "settings", "ClearImmediateOnStart", chkClearImmediate.value
+'
+'    If loaded And ClearImmediateOnStart = 1 Then
+'        MsgBox "Change takes effect next time to start IDE"
+'    End If
+'
+'End Sub
 
 Private Sub chkShowPostBuildOutput_Click()
     ShowPostBuildOutput = chkShowPostBuildOutput.value
