@@ -14,11 +14,19 @@ Begin VB.Form frmAddIn
    ScaleWidth      =   13095
    ShowInTaskbar   =   0   'False
    StartUpPosition =   2  'CenterScreen
+   Begin VB.ComboBox cboLang 
+      Height          =   315
+      Left            =   5310
+      Style           =   2  'Dropdown List
+      TabIndex        =   15
+      Top             =   6300
+      Width           =   1860
+   End
    Begin VB.Frame fraAdd 
       Caption         =   " Add New Code "
       Height          =   4875
       Left            =   4140
-      TabIndex        =   7
+      TabIndex        =   5
       Top             =   630
       Visible         =   0   'False
       Width           =   8700
@@ -34,7 +42,7 @@ Begin VB.Form frmAddIn
          EndProperty
          Height          =   375
          Left            =   1620
-         TabIndex        =   11
+         TabIndex        =   9
          Top             =   270
          Width           =   6570
       End
@@ -52,7 +60,7 @@ Begin VB.Form frmAddIn
          Left            =   1575
          MultiLine       =   -1  'True
          ScrollBars      =   3  'Both
-         TabIndex        =   10
+         TabIndex        =   8
          Top             =   780
          Width           =   6660
       End
@@ -61,7 +69,7 @@ Begin VB.Form frmAddIn
          Height          =   255
          Index           =   0
          Left            =   6615
-         TabIndex        =   9
+         TabIndex        =   7
          Top             =   4500
          Width           =   855
       End
@@ -70,7 +78,7 @@ Begin VB.Form frmAddIn
          Height          =   255
          Index           =   1
          Left            =   7515
-         TabIndex        =   8
+         TabIndex        =   6
          Top             =   4500
          Width           =   855
       End
@@ -88,7 +96,7 @@ Begin VB.Form frmAddIn
          ForeColor       =   &H00FF0000&
          Height          =   330
          Left            =   8325
-         TabIndex        =   14
+         TabIndex        =   12
          Top             =   180
          Width           =   330
       End
@@ -96,7 +104,7 @@ Begin VB.Form frmAddIn
          Caption         =   "Code Body"
          Height          =   375
          Left            =   225
-         TabIndex        =   13
+         TabIndex        =   11
          Top             =   900
          Width           =   1095
       End
@@ -104,7 +112,7 @@ Begin VB.Form frmAddIn
          Caption         =   "Prototype"
          Height          =   285
          Left            =   270
-         TabIndex        =   12
+         TabIndex        =   10
          Top             =   315
          Width           =   1005
       End
@@ -121,7 +129,7 @@ Begin VB.Form frmAddIn
       EndProperty
       Height          =   2220
       Left            =   1080
-      TabIndex        =   6
+      TabIndex        =   4
       Top             =   1305
       Visible         =   0   'False
       Width           =   2970
@@ -131,7 +139,7 @@ Begin VB.Form frmAddIn
       Height          =   255
       Index           =   5
       Left            =   11730
-      TabIndex        =   5
+      TabIndex        =   3
       Top             =   6300
       Width           =   855
    End
@@ -140,24 +148,6 @@ Begin VB.Form frmAddIn
       Height          =   255
       Index           =   4
       Left            =   10890
-      TabIndex        =   4
-      Top             =   6300
-      Width           =   855
-   End
-   Begin VB.CommandButton Command1 
-      Caption         =   "Un-Com"
-      Height          =   255
-      Index           =   3
-      Left            =   9930
-      TabIndex        =   3
-      Top             =   6300
-      Width           =   855
-   End
-   Begin VB.CommandButton Command1 
-      Caption         =   "Comment"
-      Height          =   255
-      Index           =   2
-      Left            =   9090
       TabIndex        =   2
       Top             =   6300
       Width           =   855
@@ -197,13 +187,12 @@ Begin VB.Form frmAddIn
    Begin RichTextLib.RichTextBox Text2 
       Height          =   6045
       Left            =   4500
-      TabIndex        =   15
+      TabIndex        =   13
       Top             =   135
       Width           =   8430
       _ExtentX        =   14870
       _ExtentY        =   10663
       _Version        =   393217
-      Enabled         =   -1  'True
       ScrollBars      =   3
       RightMargin     =   50000
       TextRTF         =   $"frmAddIn.frx":0000
@@ -216,6 +205,14 @@ Begin VB.Form frmAddIn
          Italic          =   0   'False
          Strikethrough   =   0   'False
       EndProperty
+   End
+   Begin VB.Label Lang 
+      Caption         =   "Lang"
+      Height          =   240
+      Left            =   4770
+      TabIndex        =   14
+      Top             =   6300
+      Width           =   420
    End
    Begin VB.Menu mnuTools 
       Caption         =   "Tools"
@@ -246,7 +243,29 @@ Dim ws As Workspace
 Dim db As Database
 Dim rs As Recordset
 
- 
+
+Private Sub cboLang_Click()
+    
+    Dim txt As String, lang_id As Long
+    
+    txt = cboLang.Text
+    
+    lang_id = Mid(txt, InStrRev(txt, "@") + 1, Len(txt))
+      
+     
+    Set rs = db.OpenRecordset("Select * from CodeDB where lang_id=" & lang_id)
+    List1.Clear
+    
+    If rs.BOF And rs.EOF Then Exit Sub
+    
+    rs.MoveFirst
+    
+    While Not rs.EOF
+        List1.AddItem rs.Fields("NAME").Value & String(80, " ") & "@" & rs.Fields("ID").Value
+        rs.MoveNext
+    Wend
+    
+End Sub
 
 Private Sub Form_Load()
     On Error GoTo oops
@@ -258,13 +277,16 @@ Private Sub Form_Load()
     
     Set ws = DBEngine.Workspaces(0)
     Set db = ws.OpenDatabase(App.Path & "\db1.mdb")
-    Set rs = db.OpenRecordset("CodeDB", dbOpenDynaset)
+    
+    Set rs = db.OpenRecordset("langs", dbOpenDynaset)
     rs.MoveFirst
-    List1.Clear
+    cboLang.Clear
     While Not rs.EOF
-        List1.AddItem rs.Fields("NAME").Value & String(80, " ") & "@" & rs.Fields("ID").Value
+        cboLang.AddItem rs.Fields("lang").Value & String(80, " ") & "@" & rs.Fields("autoid").Value
         rs.MoveNext
     Wend
+    
+    cboLang.ListIndex = 0
     
     Exit Sub
 oops: MsgBox Err.Description
@@ -280,9 +302,9 @@ Private Sub Command1_Click(Index As Integer)
     Select Case Index
         Case 0: Call extract
         Case 1: Call AddNewCode
-        Case 2: Call comment
-        Case 3: Call comment(False)
-        Case 4: Clipboard.Clear: Clipboard.SetText Text2
+        'Case 2: Call comment
+        'Case 3: Call comment(False)
+        Case 4: Clipboard.Clear: Clipboard.SetText Text2.Text
         Case 5: Text2.Text = Empty
     End Select
     Exit Sub
@@ -290,16 +312,25 @@ oops: MsgBox Err.Description
 End Sub
 
 Private Sub AddNewCode()
-    If Text3 = Empty Or Text4 = Empty Then MsgBox "Need code or name duh": Exit Sub
+
+    If Text3 = Empty Or Text4 = Empty Then
+        MsgBox "Need code or name duh"
+        Exit Sub
+    End If
+    
+    Dim txt As String, lang_id As Long
+    
+    txt = cboLang.Text
+    lang_id = Mid(txt, InStrRev(txt, "@") + 1, Len(txt))
     
     q = Chr(34) 'quote
     dq = Chr(34) & Chr(34)
     v = """" & Replace(Text3, q, dq) & """,""" & Replace(Text4, q, dq) & """"
-    mysql = "INSERT INTO CodeDB (NAME,CODE) VALUES(" & v & ");"
+    mysql = "INSERT INTO CodeDB (NAME,CODE,lang_id) VALUES(" & v & ", " & lang_id & ");"
     db.Execute mysql
     
-    Form_Unload 0
-    Form_Load
+    cboLang_Click
+   
 End Sub
 
 Private Sub extract()
@@ -312,22 +343,22 @@ Private Sub extract()
     Text3 = tmp
 End Sub
 
-Private Sub comment(Optional out As Boolean = True)
-    'basic outline of sub from Palidan on pscode
-    Dim StartLine As Long, StartColumn As Long, EndLine As Long, EndColumn As Long
-    VBInstance.ActiveCodePane.GetSelection StartLine, StartColumn, EndLine, EndColumn
-    If StartLine = EndLine And StartColumn = EndColumn Then Exit Sub
-    For i = StartLine To EndLine
-        If i = EndLine And EndColumn = 1 Then Exit For
-        l = VBInstance.ActiveCodePane.CodeModule.Lines(i, 1)
-        If out Then
-            VBInstance.ActiveCodePane.CodeModule.ReplaceLine i, "'" + l
-        Else
-            VBInstance.ActiveCodePane.CodeModule.ReplaceLine i, Mid(l, 2)
-        End If
-    Next
-    Connect.Hide
-End Sub
+'Private Sub comment(Optional out As Boolean = True)
+'    'basic outline of sub from Palidan on pscode
+'    Dim StartLine As Long, StartColumn As Long, EndLine As Long, EndColumn As Long
+'    VBInstance.ActiveCodePane.GetSelection StartLine, StartColumn, EndLine, EndColumn
+'    If StartLine = EndLine And StartColumn = EndColumn Then Exit Sub
+'    For i = StartLine To EndLine
+'        If i = EndLine And EndColumn = 1 Then Exit For
+'        l = VBInstance.ActiveCodePane.CodeModule.Lines(i, 1)
+'        If out Then
+'            VBInstance.ActiveCodePane.CodeModule.ReplaceLine i, "'" + l
+'        Else
+'            VBInstance.ActiveCodePane.CodeModule.ReplaceLine i, Mid(l, 2)
+'        End If
+'    Next
+'    Connect.Hide
+'End Sub
 
 Private Sub CopyCode()
     Dim rs2 As Recordset
@@ -337,6 +368,16 @@ Private Sub CopyCode()
     Else
         txt = List1.List(List1.ListIndex)
     End If
+    
+    If Len(txt) = 0 Then
+        'they did not select an entry, but there is only one filtered result so thats it..
+        'user action: the entered a filter, saw one result and hit return
+        If lstFilter.Visible And lstFilter.ListCount = 1 Then
+            txt = lstFilter.List(0)
+        End If
+    End If
+    
+    If Len(txt) = 0 Then Exit Sub
     
     cid = Mid(txt, InStrRev(txt, "@") + 1, Len(txt))
     rs.Filter = "ID = " & cid

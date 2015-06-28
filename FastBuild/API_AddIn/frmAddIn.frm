@@ -24,6 +24,7 @@ Begin VB.Form frmAddIn
       _ExtentX        =   16748
       _ExtentY        =   4683
       _Version        =   393217
+      Enabled         =   -1  'True
       ScrollBars      =   3
       RightMargin     =   50000
       TextRTF         =   $"frmAddIn.frx":0000
@@ -77,7 +78,7 @@ Begin VB.Form frmAddIn
             Height          =   375
             Left            =   2700
             TabIndex        =   14
-            Top             =   60
+            Top             =   45
             Width           =   1215
          End
       End
@@ -228,7 +229,7 @@ Begin VB.Form frmAddIn
       Width           =   1215
    End
    Begin VB.CommandButton OKButton 
-      Caption         =   "Copy && Close"
+      Caption         =   "Copy"
       Enabled         =   0   'False
       Height          =   375
       Left            =   8280
@@ -308,6 +309,7 @@ Private Sub CancelButton_Click()
     #End If
 End Sub
 
+ 
 Private Sub chkPublicPrivate_Click(Index As Integer)
     Static ExitChk As Boolean
     Dim V As Integer
@@ -642,9 +644,9 @@ Err_Exit:
     Exit Sub
 End Sub
 
-Private Sub Form_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
-    Debug.Print "MouseMove"
-End Sub
+'Private Sub Form_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
+'    Debug.Print "MouseMove"
+'End Sub
 
 Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
     txtResult.Text = ""
@@ -831,6 +833,7 @@ Private Sub OKButton_Click()
     #Else
         Clipboard.Clear
         Clipboard.SetText txtResult.Text
+        'Unload Me
     #End If
     
     
